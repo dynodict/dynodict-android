@@ -1,22 +1,41 @@
 package org.dynodict
 
-interface Dynodict {
-    fun setLocale(locale: TranslationsLocale)
+class Dynodict(
+    val provider: TranslationProvider, val manager: TranslationManager, val settings: Settings
+) : TranslationProvider {
 
-    fun get(translation: Translation): String
+    override fun setLocale(locale: TranslationsLocale) {
+        provider.setLocale(locale)
+    }
+
+    override fun get(translation: Translation): String {
+        return provider.get(translation)
+    }
+
+    companion object {
+        var instance: Dynodict? = null
+
+        fun with(
+            endpoint: String, settings: Settings = Settings.Default
+        ): Dynodict {
+            val storage = InMemoryObservableStorage()
+            val defaultStorage = InMemoryObservableStorage()
+            val provider = TranslationProviderImpl(storage, defaultStorage, settings)
+            return Dynodict(provider, FakeTranslationManager(storage), settings)
+        }
+    }
 }
 
-enum class TranslationsLocale {
-    UA, EN, DA,
-    // TODO add extension on Locale
+class FakeTranslationManager(
+    private val storage: Storage, private val data: Map<Translation, String> = emptyMap()
+) : SimpleManager {
+
+    override fun setEndpoint(endpoint: String) {
+        /* No op */
+    }
+
+    override fun updateTranslations() {
+        storage.value = data
+    }
 }
 
-data class Settings(val fallbackStrategy: FallbackStrategy)
-
-enum class FallbackStrategy {
-    ThrowException, EmptyString, ReturnDefault
-}
-
-enum class ExceptionResolution {
-    Handled, NotHandled
-}

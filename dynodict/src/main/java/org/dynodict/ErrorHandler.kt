@@ -7,3 +7,7 @@ interface ErrorHandler {
      */
     fun onErrorOccurred(ex: Exception): ExceptionResolution
 }
+
+enum class ExceptionResolution {
+    Handled, NotHandled
+}

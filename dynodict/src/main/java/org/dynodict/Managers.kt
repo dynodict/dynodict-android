@@ -4,6 +4,7 @@ package org.dynodict
  * 1-st level:
  * Is used to provide simple API for a user to manage translations
  * Using it metadata will be first downloaded and then all the buckets downloaded as well
+ * It will also brings dependency on OkHttp, kotlinx.serialization
  */
 interface SimpleManager : TranslationManager {
     fun setEndpoint(endpoint: String)
