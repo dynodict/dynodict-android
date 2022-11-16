@@ -1,6 +1,6 @@
 package org.dynodict
 
-class TranslationNotFoundException(
+class StringNotFoundException(
     message: String?,
     cause: Throwable? = null
 ) : Exception(message, cause) {

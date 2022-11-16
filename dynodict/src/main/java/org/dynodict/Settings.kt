@@ -6,6 +6,3 @@ data class Settings(val fallbackStrategy: FallbackStrategy){
     }
 }
 
-enum class FallbackStrategy {
-    ThrowException, EmptyString, ReturnDefault
-}

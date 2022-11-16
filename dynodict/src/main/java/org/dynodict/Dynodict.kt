@@ -1,41 +1,45 @@
 package org.dynodict
 
 class Dynodict(
-    val provider: TranslationProvider, val manager: TranslationManager, val settings: Settings
-) : TranslationProvider {
+    val provider: StringProvider,
+    val manager: DynoDictManager,
+    val settings: Settings
+) : StringProvider {
 
-    override fun setLocale(locale: TranslationsLocale) {
+    override fun setLocale(locale: DLocale) {
         provider.setLocale(locale)
     }
 
-    override fun get(translation: Translation): String {
+    override fun get(translation: DString): String {
         return provider.get(translation)
     }
 
     companion object {
         var instance: Dynodict? = null
 
-        fun with(
-            endpoint: String, settings: Settings = Settings.Default
-        ): Dynodict {
-            val storage = InMemoryObservableStorage()
-            val defaultStorage = InMemoryObservableStorage()
-            val provider = TranslationProviderImpl(storage, defaultStorage, settings)
-            return Dynodict(provider, FakeTranslationManager(storage), settings)
-        }
+//        fun initWith(
+//            endpoint: String, settings: Settings = Settings.Default
+//        ): Dynodict {
+////            val storage = InMemoryObservableStorage()
+////            val defaultStorage = InMemoryObservableStorage()
+////            val provider = TranslationProviderImpl(storage, defaultStorage, settings)
+////            return Dynodict(provider, FakeTranslationManager(storage), settings).also {
+////                instance = it
+////            }
+//        }
     }
 }
 
-class FakeTranslationManager(
-    private val storage: Storage, private val data: Map<Translation, String> = emptyMap()
-) : SimpleManager {
-
-    override fun setEndpoint(endpoint: String) {
-        /* No op */
-    }
-
-    override fun updateTranslations() {
-        storage.value = data
-    }
-}
+//class FakeTranslationManager(
+//    private val storage: Storage, private val data: Map<Translation, String> = emptyMap()
+//) : DynoDictManager {
+//
+//    override fun setEndpoint(endpoint: String) {
+//        /* No op */
+//    }
+//
+//    override suspend fun updateTranslations() {
+//        storage.value = data
+//    }
+//}
 

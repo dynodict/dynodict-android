@@ -1,6 +1,6 @@
 package org.dynodict
 
-enum class TranslationsLocale {
+enum class DLocale {
     UA, EN, DA,
     // TODO add extension on Locale
 }

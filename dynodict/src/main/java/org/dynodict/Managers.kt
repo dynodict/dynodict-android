@@ -1,42 +1,53 @@
 package org.dynodict
 
-/**
- * 1-st level:
- * Is used to provide simple API for a user to manage translations
- * Using it metadata will be first downloaded and then all the buckets downloaded as well
- * It will also brings dependency on OkHttp, kotlinx.serialization
- */
-interface SimpleManager : TranslationManager {
-    fun setEndpoint(endpoint: String)
-    fun updateTranslations()
+import org.dynodict.remote.RemoteManager
+import org.dynodict.remote.RemoteSettings
+
+interface DynoDictManager {
+    val remoteSettings: RemoteSettings
+    suspend fun updateTranslations()
 }
 
-/**
- * 2-nd level:
- * It contains more options to
- *  - set RemoteAgent which retrieves and parses the data
- *  - manually request buckets
- */
-interface AdjustableManager : TranslationManager {
-    val agent: RemoteAgent
-
-    /**
-     * Result will be flattened with absolutePath
-     */
-    suspend fun downloadTranslations(info: List<BucketInfo>): List<Translation>
-}
 
 /**
  * 3-rd level:
  * It doesn't know anything about retrieving of the Translations. Its responsibility is just to add/replace translation
  * in persistent storage
  */
-interface AdvancedManager : TranslationManager {
-    val locale: TranslationsLocale
-    val storage: ObservableStorage
-
-    fun addBucket(bucketInfo: BucketInfo, container: TranslationBucket)
-    fun replaceAllTranslations(items: Map<BucketInfo, TranslationBucket>)
+interface StoreManager {
+    fun addBucket(bucketInfo: BucketInfo, bucket: Bucket)
+    fun getBucket(bucketInfo: BucketInfo): Bucket?
+    fun getAllForLocale(locale: DLocale): List<DString>
+    fun storeBuckets(items: Map<BucketInfo, Bucket>)
 }
 
-interface TranslationManager
+
+class DynoDictManagerImpl(
+    override val remoteSettings: RemoteSettings,
+    val remoteManager: RemoteManager,
+    val storeManager: StoreManager,
+    val errorHandler: ErrorHandler
+) : DynoDictManager {
+
+    override suspend fun updateTranslations() {
+        val metadata = remoteManager.getMetadata()
+        if (metadata == null) {
+            errorHandler.onErrorOccurred(IllegalStateException("Error during getting the metadata"))
+            return
+        }
+        val items = metadata.buckets.flatMap {
+            it.languages.map { language ->
+                BucketInfo(
+                    editionVersion = it.editionVersion,
+                    bucketName = it.name,
+                    locale = language,
+                    schemeVersion = it.schemeVersion
+                )
+            }
+        }
+
+        val result = remoteManager.getStrings(items)
+
+        storeManager.storeBuckets(result)
+    }
+}

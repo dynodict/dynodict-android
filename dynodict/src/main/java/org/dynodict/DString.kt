@@ -1,6 +1,6 @@
 package org.dynodict
 
-interface Translation {
+interface DString {
     val absolutePath: String
 
     val value: String
@@ -10,6 +10,3 @@ interface Translation {
     }
 }
 
-interface TranslationBucket : Translation {
-    val translations: List<Translation>
-}

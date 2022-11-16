@@ -1,3 +1,7 @@
 package org.dynodict
 
-data class Metadata(val buckets: List<BucketInfo>)
+import kotlinx.serialization.Serializable
+
+@Serializable
+data class Metadata(val buckets: List<BucketMetadata>)
+

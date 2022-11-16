@@ -3,7 +3,7 @@ package org.dynodict
 import kotlin.properties.Delegates
 
 interface Storage {
-    var value: Map<Translation, String>
+    var value: Map<DString, String>
 }
 
 interface ObservableStorage : Storage {
@@ -12,7 +12,7 @@ interface ObservableStorage : Storage {
 
 class InMemoryObservableStorage() : ObservableStorage {
     override var listener: (() -> Unit)? = null
-    override var value: Map<Translation, String> by Delegates.observable(mutableMapOf()) { changed, old, new ->
+    override var value: Map<DString, String> by Delegates.observable(mutableMapOf()) { changed, old, new ->
         if (old != new)
             listener?.invoke()
     }
