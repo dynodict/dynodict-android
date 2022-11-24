@@ -1,18 +1,8 @@
 package org.dynodict.model
 
-data class DString(val path: String, val parent: DString? = null) {
-    val absolutePath: String = evaluateAbsolutePath(path, parent)
+import kotlinx.serialization.Serializable
 
-
-    private fun evaluateAbsolutePath(path: String, parent: DString?): String {
-        if (parent?.absolutePath == null) return path
-        return "${parent.absolutePath} + $DIVIDER + $path"
-    }
-
-
-    companion object {
-        const val DIVIDER = "/"
-    }
-}
+@Serializable
+data class DString(val key: String, val value: String)
 
 

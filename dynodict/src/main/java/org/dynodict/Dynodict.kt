@@ -14,8 +14,8 @@ class Dynodict(
         provider.setLocale(locale)
     }
 
-    override fun get(translation: DString): String {
-        return provider.get(translation)
+    override fun get(string: DString): String {
+        return provider.get(string)
     }
 
     companion object {

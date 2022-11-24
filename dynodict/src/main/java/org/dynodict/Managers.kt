@@ -3,7 +3,6 @@ package org.dynodict
 import org.dynodict.model.Bucket
 import org.dynodict.model.DLocale
 import org.dynodict.model.DString
-import org.dynodict.remote.BucketResponse
 import org.dynodict.remote.RemoteManager
 import org.dynodict.remote.RemoteSettings
 
@@ -39,19 +38,8 @@ class DynoDictManagerImpl(
             errorHandler.onErrorOccurred(IllegalStateException("Error during getting the metadata"))
             return
         }
-        val items = metadata.buckets.flatMap {
-            it.languages.map { language ->
-                Bucket(
-                    editionVersion = it.editionVersion,
-                    bucketName = it.name,
-                    locale = language,
-                    schemeVersion = it.schemeVersion,
-                    strings = emptyList()
-                )
-            }
-        }
 
-        val result = remoteManager.getStrings(items)
+        val result = remoteManager.getStrings(metadata)
 
         storeManager.storeBuckets(result)
     }

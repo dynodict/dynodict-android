@@ -1,16 +1,9 @@
 package org.dynodict
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.CornerSize
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.material.Button
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -37,30 +30,14 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    @Preview
-    @Composable
-    fun TopHeader() {
-        Column(
-            modifier = Modifier
-                .padding(12.dp)
-                .height(150.dp)
-                .clip(shape = RoundedCornerShape(corner = CornerSize(12.dp))),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Text("Top header")
-            Text("Price")
-        }
-    }
-
     private fun startGettingMetadata() {
         lifecycleScope.launch(Dispatchers.IO) {
             val manager =
                 RemoteManagerImpl(RemoteSettings("https://raw.githubusercontent.com/mkovalyk/GraphicEditor/master/"))
             val metadata = manager.getMetadata()
-//            val string = manager.getStrings(metadata?.toListOfBucketInfo().orEmpty())
+            val string = manager.getStrings(metadata!!)
             Log.d("RemoteManager", "Metadata: $metadata")
-//            Log.d("RemoteManager", "String: $string")
+            Log.d("RemoteManager", "String: $string")
         }
     }
 

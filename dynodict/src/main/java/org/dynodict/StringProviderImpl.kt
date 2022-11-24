@@ -12,21 +12,21 @@ class StringProviderImpl(
     override fun setLocale(locale: DLocale) {
     }
 
-    override fun get(translation: DString): String {
-        val value = storage.value[translation]
+    override fun get(string: DString): String {
+        val value = storage.value[string]
 
         if (value != null) return value
 
         return when (settings.fallbackStrategy) {
             FallbackStrategy.ThrowException -> {
-                throw StringNotFoundException("Translation not found for path: ${translation.absolutePath}")
+                throw StringNotFoundException("Translation not found for path: ${string.key}")
             }
             FallbackStrategy.EmptyString -> {
                 ""
             }
             FallbackStrategy.ReturnDefault -> {
                 // It should never be null for default storage
-                defaultStorage.value[translation]!!
+                defaultStorage.value[string]!!
             }
         }
     }
