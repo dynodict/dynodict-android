@@ -1,4 +1,4 @@
-package org.dynodict
+package org.dynodict.model
 
 enum class DLocale {
     UA, EN, DA,

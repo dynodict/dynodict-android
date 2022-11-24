@@ -1,5 +1,9 @@
 package org.dynodict
 
+import org.dynodict.model.Bucket
+import org.dynodict.model.DLocale
+import org.dynodict.model.DString
+import org.dynodict.remote.BucketResponse
 import org.dynodict.remote.RemoteManager
 import org.dynodict.remote.RemoteSettings
 
@@ -15,10 +19,10 @@ interface DynoDictManager {
  * in persistent storage
  */
 interface StoreManager {
-    fun addBucket(bucketInfo: BucketInfo, bucket: Bucket)
-    fun getBucket(bucketInfo: BucketInfo): Bucket?
+    fun addBucket(bucketInfo: Bucket, bucket: List<String>)
+    fun getBucket(bucket: Bucket): List<DString>?
     fun getAllForLocale(locale: DLocale): List<DString>
-    fun storeBuckets(items: Map<BucketInfo, Bucket>)
+    fun storeBuckets(items: List<Bucket>)
 }
 
 
@@ -37,11 +41,12 @@ class DynoDictManagerImpl(
         }
         val items = metadata.buckets.flatMap {
             it.languages.map { language ->
-                BucketInfo(
+                Bucket(
                     editionVersion = it.editionVersion,
                     bucketName = it.name,
                     locale = language,
-                    schemeVersion = it.schemeVersion
+                    schemeVersion = it.schemeVersion,
+                    strings = emptyList()
                 )
             }
         }

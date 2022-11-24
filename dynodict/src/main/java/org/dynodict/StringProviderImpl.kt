@@ -1,5 +1,9 @@
 package org.dynodict
 
+import org.dynodict.model.DLocale
+import org.dynodict.model.DString
+import org.dynodict.model.Settings
+
 class StringProviderImpl(
     private val storage: ObservableStorage,
     private val defaultStorage: Storage,

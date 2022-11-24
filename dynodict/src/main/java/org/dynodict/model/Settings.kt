@@ -1,4 +1,6 @@
-package org.dynodict
+package org.dynodict.model
+
+import org.dynodict.FallbackStrategy
 
 data class Settings(val fallbackStrategy: FallbackStrategy){
     companion object{

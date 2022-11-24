@@ -1,5 +1,6 @@
 package org.dynodict
 
+import org.dynodict.model.DString
 import kotlin.properties.Delegates
 
 interface Storage {

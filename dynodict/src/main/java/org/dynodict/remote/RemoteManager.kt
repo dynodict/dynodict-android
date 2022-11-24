@@ -4,17 +4,16 @@ import android.util.Log
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.*
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
-import org.dynodict.Bucket
-import org.dynodict.BucketInfo
-import org.dynodict.DString
+import org.dynodict.model.Bucket
+import org.dynodict.model.DString
 
 interface RemoteManager {
-    suspend fun getMetadata(): org.dynodict.Metadata?
-    suspend fun getStrings(info: List<BucketInfo>): Map<BucketInfo, Bucket>
+    suspend fun getMetadata(): MetadataResponse?
+    suspend fun getStrings(info: List<BucketMetadata>): List<Bucket>
 }
 
 class RemoteManagerImpl(val remoteSettings: RemoteSettings) : RemoteManager {
@@ -22,7 +21,7 @@ class RemoteManagerImpl(val remoteSettings: RemoteSettings) : RemoteManager {
     val metadataUrl = remoteSettings.baseUrl + "metadata.json"
     val translationUrl = remoteSettings.baseUrl + "login-1-ua.json"
 
-    override suspend fun getMetadata(): org.dynodict.Metadata? {
+    override suspend fun getMetadata(): MetadataResponse? {
         val request = Request.Builder()
             .url(metadataUrl)
             .build()
@@ -35,18 +34,18 @@ class RemoteManagerImpl(val remoteSettings: RemoteSettings) : RemoteManager {
         Log.d(TAG, "Body: $body")
         if (body.isNullOrEmpty()) return null
 
-        return Json.decodeFromString<org.dynodict.Metadata>(body)
+        return Json.decodeFromString<MetadataResponse>(body)
     }
 
-    private fun BucketInfo.toRequest(url: String): Request {
+    private fun BucketMetadata.toRequest(url: String): Request {
         return Request.Builder()
             .url(url + generateFilename())
+            .tag(this)
             .build()
     }
 
-    override suspend fun getStrings(info: List<BucketInfo>): Map<BucketInfo, Bucket> {
-
-        val result = mutableMapOf<BucketInfo, Bucket>()
+    override suspend fun getStrings(info: List<BucketMetadata>): List<Bucket> {
+        val parsedResponse = mutableListOf<Bucket>()
         val requests = info.map {
             it.toRequest(remoteSettings.baseUrl)
         }
@@ -57,43 +56,56 @@ class RemoteManagerImpl(val remoteSettings: RemoteSettings) : RemoteManager {
                 }
             }
 
-            deferred.forEach{
+            deferred.forEach {
                 val result = it.await()
-                parseBucket(result)
+                val bucketInfo = result.request.tag() as BucketMetadata
+                val bucket = parseBucket(result,)
+                parsedResponse.add(bucket)
             }
-
         }
-
-
-//        val response = client.newCall(request).execute()
-//        val body = response.body?.string()
-//        if (response.code != 200) {
-//            Log.d(TAG, "Error: $response")
-//            return emptyMap()
-//        }
-//        Log.d(TAG, "Body: $body")
-//        if (body.isNullOrEmpty()) return emptyMap()
-
-//        return Json.decodeFromString<org.dynodict.Metadata>(body)
+        return parsedResponse
     }
-    private fun parseBucket(response: Response):List<DString>{
+
+    private fun parseTranslationsContainer(element: JsonElement?, parent: DString?, container: MutableList<DString>) {
+        if (element is JsonObject) {
+            val value = element["value"]?.jsonPrimitive?.content
+
+            if (value == null) {
+                element.entries.forEach { entry ->
+                    parseTranslationsContainer(entry.value, parent = DString(entry.key), container = container)
+                }
+            } else {
+                container.add(DString(value, parent))
+            }
+        }
+    }
+
+    private fun parseBucket(response: Response, info: ): Bucket {
         val body = response.body?.string()
         if (response.code != 200) {
             Log.d(TAG, "Error: $response")
-            return emptyList()
+            throw IllegalStateException(" ")
         }
-        Log.d(TAG, "Body: $body")
-        if (body.isNullOrEmpty()) return emptyList()
-//
-        return Json.decodeFromString<org.dynodict.Metadata>(body)
+        if (body.isNullOrEmpty()) throw IllegalStateException()
+        val jsonObject = Json.parseToJsonElement(body).jsonObject
+
+        val schemeVersion = jsonObject["schemeVersion"]?.jsonPrimitive?.int!!
+        val editionVersion = jsonObject["editionVersion"]?.jsonPrimitive?.int!!
+        val translations = jsonObject["translations"]
+        val result = mutableListOf<DString>()
+
+        parseTranslationsContainer(translations, parent = DString(), result)
+
+        return Bucket(editionVersion, schemeVersion, editionVersion, result)
     }
 
     companion object {
         const val TAG = "RemoteManagerImpl"
     }
 
-    fun BucketInfo.generateFilename(): String {
-        return "$bucketName-$schemeVersion-$locale"
+    fun BucketMetadata.generateFilename(): String {
+        val locale = if (languages.isNotEmpty()) "-$languages[0]" else ""
+        return "$name-$schemeVersion$locale.json"
     }
 }
 
