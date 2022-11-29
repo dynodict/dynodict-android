@@ -1,32 +1,18 @@
 package org.dynodict
 
-import org.dynodict.model.Bucket
-import org.dynodict.model.DLocale
 import org.dynodict.model.DString
+import org.dynodict.model.metadata.BucketsMetadata
 import org.dynodict.remote.RemoteManager
-import org.dynodict.remote.RemoteSettings
+import org.dynodict.storage.StoreManager
 
 interface DynoDictManager {
-    val remoteSettings: RemoteSettings
     suspend fun updateTranslations()
+    suspend fun getMetadata(): BucketsMetadata?
+    suspend fun getAllForLanguage(language: String): List<DString>
 }
-
-
-/**
- * 3-rd level:
- * It doesn't know anything about retrieving of the Translations. Its responsibility is just to add/replace translation
- * in persistent storage
- */
-interface StoreManager {
-    fun addBucket(bucketInfo: Bucket, bucket: List<String>)
-    fun getBucket(bucket: Bucket): List<DString>?
-    fun getAllForLocale(locale: DLocale): List<DString>
-    fun storeBuckets(items: List<Bucket>)
-}
-
 
 class DynoDictManagerImpl(
-    override val remoteSettings: RemoteSettings,
+//    override val remoteSettings: RemoteSettings,
     val remoteManager: RemoteManager,
     val storeManager: StoreManager,
     val errorHandler: ErrorHandler
@@ -41,6 +27,15 @@ class DynoDictManagerImpl(
 
         val result = remoteManager.getStrings(metadata)
 
+        storeManager.storeMetadata(metadata)
         storeManager.storeBuckets(result)
+    }
+
+    override suspend fun getMetadata(): BucketsMetadata? {
+        return storeManager.getMetadata()
+    }
+
+    override suspend fun getAllForLanguage(language: String): List<DString> {
+        return storeManager.getAllForLanguage(language)
     }
 }

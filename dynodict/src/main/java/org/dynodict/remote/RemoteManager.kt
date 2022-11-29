@@ -9,17 +9,22 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
 import org.dynodict.model.Bucket
+import org.dynodict.model.metadata.BucketMetadata
+import org.dynodict.model.metadata.BucketsMetadata
 
 interface RemoteManager {
-    suspend fun getMetadata(): MetadataResponse?
-    suspend fun getStrings(metadata: MetadataResponse): List<Bucket>
+    suspend fun getMetadata(): BucketsMetadata?
+    suspend fun getStrings(metadata: BucketsMetadata): List<Bucket>
 }
 
-class RemoteManagerImpl(val remoteSettings: RemoteSettings) : RemoteManager {
+class RemoteManagerImpl(
+    val remoteSettings: RemoteSettings,
+    val json: Json
+) : RemoteManager {
     val client = OkHttpClient()
     val metadataUrl = remoteSettings.baseUrl + "metadata.json"
 
-    override suspend fun getMetadata(): MetadataResponse? {
+    override suspend fun getMetadata(): BucketsMetadata? {
         val request = Request.Builder().url(metadataUrl).build()
         val response = client.newCall(request).execute()
         val body = response.body?.string()
@@ -30,14 +35,10 @@ class RemoteManagerImpl(val remoteSettings: RemoteSettings) : RemoteManager {
         Log.d(TAG, "Body: $body")
         if (body.isNullOrEmpty()) return null
 
-        return Json.decodeFromString<MetadataResponse>(body)
+        return json.decodeFromString<BucketsMetadata>(body)
     }
 
-    private fun BucketMetadata.toRequest(url: String, language: String): Request {
-        return Request.Builder().url(url + generateFilename(language)).tag(this).build()
-    }
-
-    override suspend fun getStrings(metadata: MetadataResponse): List<Bucket> {
+    override suspend fun getStrings(metadata: BucketsMetadata): List<Bucket> {
         val buckets = mutableListOf<Bucket>()
 
         val requests = metadata.buckets.flatMap { bucket ->
@@ -70,16 +71,20 @@ class RemoteManagerImpl(val remoteSettings: RemoteSettings) : RemoteManager {
             throw IllegalStateException("Response code is not 200.")
         }
         if (body.isNullOrEmpty()) throw IllegalStateException("Empty response")
-        val decoded: Bucket = Json.decodeFromString(body)
-        return decoded.copy(bucketName = info.name, language = info.language)
+        val decoded: Bucket = json.decodeFromString(body)
+        return decoded.copy(name = info.name, language = info.language)
     }
 
-    companion object {
-        const val TAG = "RemoteManagerImpl"
+    private fun BucketMetadata.toRequest(url: String, language: String): Request {
+        return Request.Builder().url(url + generateFilename(language)).tag(this).build()
     }
 
     private fun BucketMetadata.generateFilename(language: String): String {
         return "$name-$schemeVersion-$language.json"
+    }
+
+    companion object {
+        const val TAG = "RemoteManagerImpl"
     }
 }
 
