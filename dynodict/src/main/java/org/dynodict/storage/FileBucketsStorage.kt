@@ -7,7 +7,8 @@ import org.dynodict.model.Bucket
 import java.io.File
 
 class FileBucketsStorage(
-    val folder: File, private val json: Json
+    private val folder: File,
+    private val json: Json
 ) : BucketsStorage {
     override suspend fun store(bucket: Bucket) {
         val bucketFile = File(folder, bucket.generateFilename())

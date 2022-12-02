@@ -8,7 +8,7 @@ import org.dynodict.model.metadata.BucketsMetadata
 /**
  * General implementation of the manager to take care of storing string persistently
  */
-interface StoreManager {
+interface StorageManager {
     suspend fun addBucket(bucket: Bucket)
     suspend fun getBucket(metadata: BucketMetadata): Bucket?
     suspend fun getAllForLanguage(language: String): List<DString>
@@ -18,10 +18,10 @@ interface StoreManager {
     suspend fun storeMetadata(metadata: BucketsMetadata)
 }
 
-class StoreManagerImpl(
-    val bucketsStorage: BucketsStorage,
-    val metadataStorage: MetadataStorage
-) : StoreManager {
+class StorageManagerImpl(
+    private val bucketsStorage: BucketsStorage,
+    private val metadataStorage: MetadataStorage
+) : StorageManager {
     override suspend fun addBucket(bucket: Bucket) {
         bucketsStorage.store(bucket)
     }

@@ -1,8 +1,9 @@
 package org.dynodict
 
+import org.dynodict.manager.DynoDictManager
 import org.dynodict.model.DLocale
-import org.dynodict.model.DString
 import org.dynodict.model.Settings
+import org.dynodict.provider.StringProvider
 
 class Dynodict(
     val provider: StringProvider,
@@ -10,13 +11,14 @@ class Dynodict(
     val settings: Settings
 ) : StringProvider {
 
-    override fun setLocale(locale: DLocale) {
+    override suspend fun setLocale(locale: DLocale) {
         provider.setLocale(locale)
     }
 
-    override fun get(string: DString): String {
-        return provider.get(string)
+    override fun get(key: Key): String {
+        return ""
     }
+
 
     companion object {
         var instance: Dynodict? = null

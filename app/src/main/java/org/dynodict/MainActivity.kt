@@ -28,13 +28,14 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
+import org.dynodict.manager.DynoDictManagerImpl
 import org.dynodict.model.DString
 import org.dynodict.model.metadata.BucketsMetadata
 import org.dynodict.remote.RemoteManagerImpl
 import org.dynodict.remote.RemoteSettings
 import org.dynodict.storage.FileBucketsStorage
 import org.dynodict.storage.FileMetadataStorage
-import org.dynodict.storage.StoreManagerImpl
+import org.dynodict.storage.StorageManagerImpl
 
 class MainActivity : AppCompatActivity() {
 
@@ -132,8 +133,8 @@ class MainActivity : AppCompatActivity() {
             RemoteManagerImpl(RemoteSettings("https://raw.githubusercontent.com/mkovalyk/GraphicEditor/master/"), json)
         val bucketsStorage = FileBucketsStorage(filesDir, json)
         val metadataStorage = FileMetadataStorage(filesDir, json)
-        val storageManager = StoreManagerImpl(bucketsStorage, metadataStorage)
-        return DynoDictManagerImpl(manager, storageManager, object : ErrorHandler {
+        val storageManager = StorageManagerImpl(bucketsStorage, metadataStorage)
+        return DynoDictManagerImpl(manager, storageManager, object : DynodictCallback {
             override fun onErrorOccurred(ex: Exception): ExceptionResolution {
                 Log.d("XXX", "errorOccurred: $ex")
                 return ExceptionResolution.Handled
