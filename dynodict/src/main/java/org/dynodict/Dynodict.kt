@@ -6,10 +6,10 @@ import org.dynodict.model.Settings
 import org.dynodict.provider.StringProvider
 
 class Dynodict(
-    val provider: StringProvider,
+    private val provider: StringProvider,
     val manager: DynoDictManager,
     val settings: Settings
-) : StringProvider {
+) : StringProvider, DynoDictManager {
 
     override suspend fun setLocale(locale: DLocale) {
         provider.setLocale(locale)
@@ -33,6 +33,10 @@ class Dynodict(
 ////                instance = it
 ////            }
 //        }
+    }
+
+    override suspend fun updateTranslations() {
+        manager.updateTranslations()
     }
 }
 

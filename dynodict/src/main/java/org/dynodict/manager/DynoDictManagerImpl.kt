@@ -9,7 +9,7 @@ import org.dynodict.storage.StorageManager
 
 class DynoDictManagerImpl(
     private val remoteManager: RemoteManager,
-    private val storageManager: StorageManager,
+    val storageManager: StorageManager,
     private val dynodictCallback: DynodictCallback
 ) : DynoDictManager {
 

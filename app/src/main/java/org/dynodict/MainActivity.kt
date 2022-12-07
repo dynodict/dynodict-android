@@ -30,11 +30,14 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import org.dynodict.manager.DynoDictManagerImpl
 import org.dynodict.model.DString
+import org.dynodict.model.Settings
 import org.dynodict.model.metadata.BucketsMetadata
+import org.dynodict.provider.StringProviderImpl
 import org.dynodict.remote.RemoteManagerImpl
 import org.dynodict.remote.RemoteSettings
 import org.dynodict.storage.FileBucketsStorage
 import org.dynodict.storage.FileMetadataStorage
+import org.dynodict.storage.StorageManager
 import org.dynodict.storage.StorageManagerImpl
 
 class MainActivity : AppCompatActivity() {
@@ -124,36 +127,51 @@ class MainActivity : AppCompatActivity() {
         startGettingMetadata()
     }
 
-    private fun createDynoDict(): DynoDictManager {
+    private var storageManager: StorageManager? = null
+
+    private fun createDynoDict(): Dynodict {
         val json = Json {
             ignoreUnknownKeys = true
         }
 
-        val manager =
+        val remoteManager =
             RemoteManagerImpl(RemoteSettings("https://raw.githubusercontent.com/mkovalyk/GraphicEditor/master/"), json)
         val bucketsStorage = FileBucketsStorage(filesDir, json)
         val metadataStorage = FileMetadataStorage(filesDir, json)
-        val storageManager = StorageManagerImpl(bucketsStorage, metadataStorage)
-        return DynoDictManagerImpl(manager, storageManager, object : DynodictCallback {
+        storageManager = StorageManagerImpl(bucketsStorage, metadataStorage)
+        val manager = DynoDictManagerImpl(remoteManager, storageManager!!, object : DynodictCallback {
             override fun onErrorOccurred(ex: Exception): ExceptionResolution {
                 Log.d("XXX", "errorOccurred: $ex")
                 return ExceptionResolution.Handled
             }
+
+            override fun onStringsUpdated() {
+                TODO("Not yet implemented")
+            }
         })
+
+        return Dynodict(
+            StringProviderImpl(
+                bucketsStorage,
+                metadataStorage,
+                Settings(FallbackStrategy.ThrowException),
+                bucketsStorage
+            ),
+            manager,
+            Settings(FallbackStrategy.ThrowException)
+        )
     }
 
 
     private fun startGettingMetadata() {
         lifecycleScope.launch(Dispatchers.IO) {
             dynoDict.updateTranslations()
-            val meta = dynoDict.getMetadata()
+            val meta = storageManager!!.getMetadata()
             metadata.value = meta
-            val selectedLang = if (selectedLanguage.value.isNotEmpty()) {
-                selectedLanguage.value
-            } else {
+            val selectedLang = selectedLanguage.value.ifEmpty {
                 meta?.defaultLanguage.orEmpty()
             }
-            val result = dynoDict.getAllForLanguage(selectedLang)
+            val result = storageManager!!.getAllForLanguage(selectedLang)
             strings.value = result
         }
     }

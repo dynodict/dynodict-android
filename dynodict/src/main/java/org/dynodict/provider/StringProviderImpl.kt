@@ -51,9 +51,8 @@ class StringProviderImpl(
 
     override fun get(key: Key): String {
         val dString = buckets[key]
-        if (dString != null) return dString.value
-        else {
-            return when (settings.fallbackStrategy) {
+        return dString?.value
+            ?: when (settings.fallbackStrategy) {
                 FallbackStrategy.ThrowException -> {
                     throw StringNotFoundException("String not found for key $key and locale: $locale")
                 }
@@ -65,6 +64,5 @@ class StringProviderImpl(
                     defaultBuckets[key]!!.value
                 }
             }
-        }
     }
 }
