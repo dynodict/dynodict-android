@@ -1,7 +1,6 @@
 package org.dynodict
 
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.animation.AnimatedVisibility
@@ -23,23 +22,11 @@ import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
-import kotlinx.serialization.json.Json
 import org.dynodict.manager.DynoDictManagerImpl
 import org.dynodict.model.DLocale
 import org.dynodict.model.DString
 import org.dynodict.model.Key
 import org.dynodict.model.metadata.BucketsMetadata
-import org.dynodict.model.settings.FallbackStrategy
-import org.dynodict.model.settings.Settings
-import org.dynodict.provider.StringProviderImpl
-import org.dynodict.remote.RemoteManagerImpl
-import org.dynodict.remote.RemoteSettings
-import org.dynodict.storage.FileBucketsStorage
-import org.dynodict.storage.FileMetadataStorage
-import org.dynodict.storage.StorageManager
-import org.dynodict.storage.StorageManagerImpl
-import org.dynodict.storage.defaults.DefaultBucketsFileStorage
-import org.dynodict.storage.defaults.DefaultMetadataFileStorage
 
 class MainActivity : AppCompatActivity() {
 
@@ -159,66 +146,21 @@ class MainActivity : AppCompatActivity() {
         startGettingMetadata()
     }
 
-    private var storageManager: StorageManager? = null
-
-    private fun createDynoDict(): Dynodict {
-        val json = Json {
-            ignoreUnknownKeys = true
-        }
-
-        val remoteManager =
-            RemoteManagerImpl(
-                RemoteSettings("https://raw.githubusercontent.com/mkovalyk/GraphicEditor/master/"),
-                json
-            )
-        val bucketsStorage = FileBucketsStorage(filesDir, json)
-        val metadataStorage = FileMetadataStorage(filesDir, json)
-        storageManager = StorageManagerImpl(bucketsStorage, metadataStorage)
-        val callback = object : DynodictCallback {
-            override fun onErrorOccurred(ex: Exception): ExceptionResolution {
-                Log.d("QQQQ", "errorOccurred: $ex")
-                return ExceptionResolution.Handled
-            }
-
-            override fun onStringsUpdated() {
-                Log.d("QQQQ", "onStringsUpdated: ")
-            }
-
-            override fun onFailedToRetrieveDefaultData(ex: Exception): ExceptionResolution {
-                Log.d("QQQQ", "onFailedToRetrieveDefaultData: $ex")
-                return ExceptionResolution.Handled
-            }
-        }
-        val manager = DynoDictManagerImpl(remoteManager, storageManager!!, callback)
-
-        val settings = Settings(FallbackStrategy.ReturnDefault)
-        val defaultBucketStorage = DefaultBucketsFileStorage(filesDir, json, assets)
-        val defaultMetadataStorage = DefaultMetadataFileStorage(filesDir, json, assets)
-        val provider = StringProviderImpl(
-            bucketsStorage,
-            metadataStorage,
-            settings,
-            defaultBucketStorage,
-            defaultMetadataStorage
-        )
-
-        return Dynodict(
-            provider,
-            manager,
-            settings
-        )
+    private fun createDynoDict(): DynoDict {
+        return DynoDict.initWith("https://raw.githubusercontent.com/mkovalyk/GraphicEditor/master/", this)
     }
 
 
     private fun startGettingMetadata() {
         lifecycleScope.launch(Dispatchers.IO) {
             dynoDict.updateTranslations()
-            val meta = storageManager!!.getMetadata()
+            val storageManager = (dynoDict.manager as DynoDictManagerImpl).storageManager
+            val meta = storageManager.getMetadata()
             metadata.value = meta
             val selectedLang = selectedLanguage.value.ifEmpty {
                 meta?.defaultLanguage.orEmpty()
             }
-            val result = storageManager!!.getAllForLanguage(selectedLang)
+            val result = storageManager.getAllForLanguage(selectedLang)
             strings.value = result
             dynoDict.setLocale(DLocale(selectedLang))
         }
