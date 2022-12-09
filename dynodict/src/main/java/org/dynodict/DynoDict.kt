@@ -35,8 +35,8 @@ class DynoDict(
         return provider.get(key)
     }
 
-    override suspend fun updateTranslations() {
-        manager.updateTranslations()
+    override suspend fun updateStrings() {
+        manager.updateStrings()
     }
 
     override suspend fun updateMetadata(): BucketsMetadata? {
@@ -58,21 +58,18 @@ class DynoDict(
         private const val TAG = "DynoDict"
 
         fun initWith(
-            endpoint: String,
             context: Context,
+            endpoint: String?,
             settings: Settings = Settings.Default
         ): DynoDict {
             val json = Json {
                 ignoreUnknownKeys = true
             }
 
-            val remoteManager =
-                RemoteManagerImpl(
-                    RemoteSettings(endpoint),
-                    json
-                )
+            val remoteManager = RemoteManagerImpl(RemoteSettings(endpoint.orEmpty()), json)
             val bucketsStorage = FileBucketsStorage(context.filesDir, json)
             val metadataStorage = FileMetadataStorage(context.filesDir, json)
+
             val storageManager = StorageManagerImpl(bucketsStorage, metadataStorage)
             val callback = object : DynodictCallback {
                 override fun onErrorOccurred(ex: Exception): ExceptionResolution {
@@ -83,28 +80,39 @@ class DynoDict(
                 override fun onStringsUpdated() {
                     Log.d(TAG, "onStringsUpdated: ")
                 }
-
-                override fun onFailedToRetrieveDefaultData(ex: Exception): ExceptionResolution {
-                    Log.d(TAG, "onFailedToRetrieveDefaultData: $ex")
-                    return ExceptionResolution.NotHandled
-                }
             }
             val manager = DynoDictManagerImpl(remoteManager, storageManager, callback)
 
-            val defaultBucketStorage = DefaultBucketsFileStorage(context.filesDir, json, context.assets)
-            val defaultMetadataStorage = DefaultMetadataFileStorage(context.filesDir, json, context.assets)
-            val provider = StringProviderImpl(
-                bucketsStorage,
-                metadataStorage,
-                settings,
-                defaultBucketStorage,
-                defaultMetadataStorage
-            )
+            val provider =
+                createStringProvider(context, json, bucketsStorage, metadataStorage, settings)
 
             return DynoDict(
                 provider,
                 manager,
                 settings
+            ).also {
+                instance = it
+            }
+        }
+
+        private fun createStringProvider(
+            context: Context,
+            json: Json,
+            bucketsStorage: FileBucketsStorage,
+            metadataStorage: FileMetadataStorage,
+            settings: Settings
+        ): StringProviderImpl {
+            val defaultBucketStorage =
+                DefaultBucketsFileStorage(context.filesDir, json, context.assets)
+            val defaultMetadataStorage =
+                DefaultMetadataFileStorage(context.filesDir, json, context.assets)
+
+            return StringProviderImpl(
+                bucketsStorage,
+                metadataStorage,
+                settings,
+                defaultBucketStorage,
+                defaultMetadataStorage
             )
         }
     }

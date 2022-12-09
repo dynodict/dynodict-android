@@ -147,13 +147,13 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun createDynoDict(): DynoDict {
-        return DynoDict.initWith("https://raw.githubusercontent.com/mkovalyk/GraphicEditor/master/", this)
+        return DynoDict.initWith(this, "https://raw.githubusercontent.com/mkovalyk/GraphicEditor/master/")
     }
 
 
     private fun startGettingMetadata() {
         lifecycleScope.launch(Dispatchers.IO) {
-            dynoDict.updateTranslations()
+            dynoDict.updateStrings()
             val storageManager = (dynoDict.manager as DynoDictManagerImpl).storageManager
             val meta = storageManager.getMetadata()
             metadata.value = meta

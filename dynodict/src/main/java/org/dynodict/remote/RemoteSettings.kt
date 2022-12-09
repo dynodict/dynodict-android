@@ -1,3 +1,3 @@
 package org.dynodict.remote
 
-data class RemoteSettings(val baseUrl: String)
+data class RemoteSettings(val endpoint: String)

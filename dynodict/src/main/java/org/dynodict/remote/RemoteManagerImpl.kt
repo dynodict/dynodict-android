@@ -1,6 +1,5 @@
 package org.dynodict.remote
 
-import android.util.Log
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.serialization.decodeFromString
@@ -13,21 +12,19 @@ import org.dynodict.model.metadata.BucketMetadata
 import org.dynodict.model.metadata.BucketsMetadata
 
 class RemoteManagerImpl(
-    private val remoteSettings: RemoteSettings,
+    override val settings: RemoteSettings,
     private val json: Json
 ) : RemoteManager {
-    val client = OkHttpClient()
-    val metadataUrl = remoteSettings.baseUrl + "metadata.json"
+    private val client = OkHttpClient()
+    private val metadataUrl = settings.endpoint + "metadata.json"
 
     override suspend fun getMetadata(): BucketsMetadata? {
         val request = Request.Builder().url(metadataUrl).build()
         val response = client.newCall(request).execute()
         val body = response.body?.string()
         if (response.code != 200) {
-            Log.d(TAG, "Error: $response")
             return null
         }
-        Log.d(TAG, "Body: $body")
         if (body.isNullOrEmpty()) return null
 
         return json.decodeFromString<BucketsMetadata>(body)
@@ -38,7 +35,7 @@ class RemoteManagerImpl(
 
         val requests = metadata.buckets.flatMap { bucket ->
             metadata.languages.map { language ->
-                bucket.copy(language = language).toRequest(remoteSettings.baseUrl, language)
+                bucket.copy(language = language).toRequest(settings.endpoint, language)
             }
         }
 
@@ -62,7 +59,6 @@ class RemoteManagerImpl(
     private fun parseBucket(response: Response, info: BucketMetadata): Bucket {
         val body = response.body?.string()
         if (response.code != 200) {
-            Log.d(TAG, "Error: $response")
             throw IllegalStateException("Response code is not 200.")
         }
         if (body.isNullOrEmpty()) throw IllegalStateException("Empty response")
@@ -76,9 +72,5 @@ class RemoteManagerImpl(
 
     private fun BucketMetadata.generateFilename(language: String): String {
         return "$name-$schemeVersion-$language.json"
-    }
-
-    companion object {
-        const val TAG = "RemoteManagerImpl"
     }
 }

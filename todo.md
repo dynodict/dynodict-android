@@ -1,7 +1,7 @@
 # TODO
 
-* Finish default approach
-* Don't validate url parameter
+* Finish default approach +
+* Don't validate url parameter +
 * Initialize default Dynodict with parameters and use Content provider
 *
 

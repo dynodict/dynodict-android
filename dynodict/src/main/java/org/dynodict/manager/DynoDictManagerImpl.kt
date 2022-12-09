@@ -16,13 +16,14 @@ class DynoDictManagerImpl(
     private val dynodictCallback: DynodictCallback
 ) : DynoDictManager {
 
-    override suspend fun updateTranslations() {
+    override suspend fun updateStrings() {
         val metadata = updateMetadata() ?: return
 
         updateBuckets(metadata)
     }
 
     override suspend fun updateMetadata(): BucketsMetadata? {
+        validateRemoteSettings()
         val metadata = remoteManager.getMetadata()
         if (metadata == null) {
             val exception = IllegalStateException("Error during getting the metadata")
@@ -42,6 +43,7 @@ class DynoDictManagerImpl(
     }
 
     override suspend fun updateBuckets(bucketsMetadata: BucketsMetadata) {
+        validateRemoteSettings()
         val result = remoteManager.getStrings(bucketsMetadata)
 
         storageManager.storeBuckets(result)
@@ -50,4 +52,11 @@ class DynoDictManagerImpl(
     override suspend fun removeBuckets(buckets: List<BucketMetadata>) {
         storageManager.removeBuckets(buckets)
     }
+
+    private fun validateRemoteSettings() {
+        if (remoteManager.settings.endpoint.isEmpty()) {
+            throw IllegalStateException("Can't update strings when endpoint is not passed.")
+        }
+    }
+
 }

@@ -1,6 +1,7 @@
 package org.dynodict.provider
 
-import org.dynodict.error.StringNotFoundException
+import org.dynodict.DefaultStringNotFoundException
+import org.dynodict.StringNotFoundException
 import org.dynodict.model.DLocale
 import org.dynodict.model.DString
 import org.dynodict.model.Key
@@ -66,6 +67,7 @@ class StringProviderImpl(
         return result
     }
 
+    @Suppress("FoldInitializerAndIfToElvis")
     override fun get(key: Key): String {
         val dString = buckets[key]
         return dString?.value
@@ -78,7 +80,13 @@ class StringProviderImpl(
                 }
                 FallbackStrategy.ReturnDefault -> {
                     // It should never be null for default storage
-                    defaultBuckets[key]!!.value
+                    val value = defaultBuckets[key]?.value
+                    
+                    if (value == null) {
+                        throw DefaultStringNotFoundException("Default String can not be found for key:$key")
+                    }
+
+                    value
                 }
             }
     }
