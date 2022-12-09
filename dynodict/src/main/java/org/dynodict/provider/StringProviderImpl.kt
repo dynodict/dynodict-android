@@ -1,14 +1,15 @@
 package org.dynodict.provider
 
-import org.dynodict.FallbackStrategy
-import org.dynodict.Key
-import org.dynodict.StringNotFoundException
+import org.dynodict.error.StringNotFoundException
 import org.dynodict.model.DLocale
 import org.dynodict.model.DString
-import org.dynodict.model.Settings
+import org.dynodict.model.Key
 import org.dynodict.model.metadata.BucketMetadata
+import org.dynodict.model.settings.FallbackStrategy
+import org.dynodict.model.settings.Settings
 import org.dynodict.storage.BucketsStorage
 import org.dynodict.storage.MetadataStorage
+import org.dynodict.storage.generateBucketName
 import java.util.concurrent.ConcurrentHashMap
 
 class StringProviderImpl(
@@ -16,6 +17,7 @@ class StringProviderImpl(
     private val metadataStorage: MetadataStorage,
     private val settings: Settings,
     private val defaultBucketsStorage: BucketsStorage,
+    private val defaultMetadataStorage: MetadataStorage
 ) : StringProvider {
     private var locale: DLocale? = null
     private val buckets: MutableMap<Key, DString> = ConcurrentHashMap()
@@ -29,24 +31,39 @@ class StringProviderImpl(
             throw IllegalStateException("Locale $locale can not be found")
         }
         val bucketsMetadata = metadata.buckets
-        buckets.clear()
 
-        readBucketsFromStorage(bucketsMetadata, locale, bucketsStorage)
-        val defaultLanguage = DLocale(metadata.defaultLanguage)
-        if (locale != defaultLanguage) {
-            readBucketsFromStorage(bucketsMetadata, defaultLanguage, defaultBucketsStorage)
+        buckets.clear()
+        buckets.putAll(readBucketsFromStorage(bucketsMetadata, locale, bucketsStorage))
+
+        if (defaultBuckets.isEmpty()) {
+
+            val defaultMetadata = defaultMetadataStorage.get()
+            requireNotNull(defaultMetadata) {
+                "Can't get default metadata. Make sure a file passed via assets is properly named and contains the required data"
+            }
+
+            val defaultLanguage = DLocale(defaultMetadata.defaultLanguage)
+
+            val defaultStrings = readBucketsFromStorage(
+                defaultMetadata.buckets,
+                defaultLanguage,
+                defaultBucketsStorage
+            )
+            defaultBuckets.putAll(defaultStrings)
         }
     }
 
     private suspend fun readBucketsFromStorage(
         bucketsMetadata: List<BucketMetadata>, locale: DLocale, storage: BucketsStorage
-    ) {
+    ): Map<Key, DString> {
         val result = mutableMapOf<Key, DString>()
         bucketsMetadata.forEach {
-            val map = storage.get(it.name, locale.value, it.editionVersion)?.translations.orEmpty()
+            val filename = generateBucketName(it.name, locale.value, it.editionVersion)
+            val map = storage.get(filename)?.translations.orEmpty()
                 .associateBy { value -> Key(value.key) }
             result.putAll(map)
         }
+        return result
     }
 
     override fun get(key: Key): String {

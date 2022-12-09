@@ -16,6 +16,7 @@ interface StorageManager {
 
     suspend fun getMetadata(): BucketsMetadata?
     suspend fun storeMetadata(metadata: BucketsMetadata)
+    suspend fun removeBuckets(buckets: List<BucketMetadata>)
 }
 
 class StorageManagerImpl(
@@ -23,12 +24,18 @@ class StorageManagerImpl(
     private val metadataStorage: MetadataStorage
 ) : StorageManager {
     override suspend fun addBucket(bucket: Bucket) {
-        bucketsStorage.store(bucket)
+        bucketsStorage.save(bucket)
     }
 
     override suspend fun getBucket(metadata: BucketMetadata): Bucket? {
         metadata.language?.let { language ->
-            return bucketsStorage.get(metadata.name, language, metadata.schemeVersion)
+            return bucketsStorage.get(
+                generateBucketName(
+                    metadata.name,
+                    language,
+                    metadata.schemeVersion
+                )
+            )
         }
         return null
     }
@@ -46,12 +53,13 @@ class StorageManagerImpl(
 
     private suspend fun BucketMetadata.getBucket(storage: BucketsStorage): Bucket? {
         val bucketLang = language ?: return null
-        return storage.get(name, bucketLang, schemeVersion)
+        val filename = generateBucketName(name, bucketLang, schemeVersion)
+        return storage.get(filename)
     }
 
     override suspend fun storeBuckets(items: List<Bucket>) {
         items.forEach {
-            bucketsStorage.store(it)
+            bucketsStorage.save(it)
         }
     }
 
@@ -60,7 +68,22 @@ class StorageManagerImpl(
     }
 
     override suspend fun storeMetadata(metadata: BucketsMetadata) {
-        metadataStorage.store(metadata)
+        metadataStorage.save(metadata)
+    }
+
+    override suspend fun removeBuckets(buckets: List<BucketMetadata>) {
+        buckets.forEach { metadata ->
+            bucketsStorage.save(metadata.toBucket())
+        }
     }
 }
 
+private fun BucketMetadata.toBucket(): Bucket {
+    return Bucket(
+        editionVersion = editionVersion,
+        schemeVersion = schemeVersion,
+        language = language,
+        name = name,
+        translations = emptyList()
+    )
+}

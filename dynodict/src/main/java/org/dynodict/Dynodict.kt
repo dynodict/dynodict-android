@@ -2,13 +2,16 @@ package org.dynodict
 
 import org.dynodict.manager.DynoDictManager
 import org.dynodict.model.DLocale
-import org.dynodict.model.Settings
+import org.dynodict.model.Key
+import org.dynodict.model.metadata.BucketMetadata
+import org.dynodict.model.metadata.BucketsMetadata
+import org.dynodict.model.settings.Settings
 import org.dynodict.provider.StringProvider
 
 class Dynodict(
     private val provider: StringProvider,
-    val manager: DynoDictManager,
-    val settings: Settings
+    private val manager: DynoDictManager,
+    private val settings: Settings,
 ) : StringProvider, DynoDictManager {
 
     override suspend fun setLocale(locale: DLocale) {
@@ -16,7 +19,7 @@ class Dynodict(
     }
 
     override fun get(key: Key): String {
-        return ""
+        return provider.get(key)
     }
 
 
@@ -37,6 +40,18 @@ class Dynodict(
 
     override suspend fun updateTranslations() {
         manager.updateTranslations()
+    }
+
+    override suspend fun updateMetadata(): BucketsMetadata? {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun updateBuckets(bucketsMetadata: BucketsMetadata) {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun removeBuckets(buckets: List<BucketMetadata>) {
+        TODO("Not yet implemented")
     }
 }
 

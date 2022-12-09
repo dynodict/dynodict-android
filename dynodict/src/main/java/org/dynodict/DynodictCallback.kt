@@ -8,6 +8,8 @@ interface DynodictCallback {
     fun onErrorOccurred(ex: Exception): ExceptionResolution
 
     fun onStringsUpdated()
+
+    fun onFailedToRetrieveDefaultData(ex: Exception): ExceptionResolution
 }
 
 enum class ExceptionResolution {

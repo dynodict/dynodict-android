@@ -1,0 +1,26 @@
+{
+    "editionVersion": 1,
+    "schemeVersion": 1,
+    "translations": [
+        {
+            "key": "LoginScreen.ButtonName",
+            "params": [
+                {
+                    "format": "startTime",
+                    "type": "format",
+                    "key": "param1"
+                },
+                {
+                    "format": "startTime",
+                    "type": "format",
+                    "key": "param2"
+                }
+            ],
+            "value": "Log  in {param1} ({param2})"
+        },
+        {
+            "key": "LoginScreen.Input.Email",
+            "value": "Email"
+        }
+    ]
+}

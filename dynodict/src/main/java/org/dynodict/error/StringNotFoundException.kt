@@ -1,4 +1,4 @@
-package org.dynodict
+package org.dynodict.error
 
 class StringNotFoundException(
     message: String?,

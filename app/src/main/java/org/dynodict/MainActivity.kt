@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -11,13 +12,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.Button
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.RadioButton
-import androidx.compose.material.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.material.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
@@ -29,9 +25,12 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import org.dynodict.manager.DynoDictManagerImpl
+import org.dynodict.model.DLocale
 import org.dynodict.model.DString
-import org.dynodict.model.Settings
+import org.dynodict.model.Key
 import org.dynodict.model.metadata.BucketsMetadata
+import org.dynodict.model.settings.FallbackStrategy
+import org.dynodict.model.settings.Settings
 import org.dynodict.provider.StringProviderImpl
 import org.dynodict.remote.RemoteManagerImpl
 import org.dynodict.remote.RemoteSettings
@@ -39,6 +38,8 @@ import org.dynodict.storage.FileBucketsStorage
 import org.dynodict.storage.FileMetadataStorage
 import org.dynodict.storage.StorageManager
 import org.dynodict.storage.StorageManagerImpl
+import org.dynodict.storage.defaults.DefaultBucketsFileStorage
+import org.dynodict.storage.defaults.DefaultMetadataFileStorage
 
 class MainActivity : AppCompatActivity() {
 
@@ -61,13 +62,17 @@ class MainActivity : AppCompatActivity() {
                 }
                 Column(
                     modifier = Modifier
-                        .height(200.dp)
+                        .heightIn(max = 200.dp)
                         .fillMaxWidth()
                         .verticalScroll(rememberScrollState())
                         .selectableGroup()
                 ) {
                     metadataState?.languages.orEmpty().forEach { language ->
-                        LanguageRadioButton(language, language == selectedLanguageState, ::languageSelected)
+                        LanguageRadioButton(
+                            language,
+                            language == selectedLanguageState,
+                            ::languageSelected
+                        )
                     }
                 }
                 LazyColumn(modifier = Modifier.fillMaxWidth()) {
@@ -75,8 +80,31 @@ class MainActivity : AppCompatActivity() {
                         StringItem(item)
                     }
                 }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Divider()
+
+                AnimatedVisibility(visible = stringsState.isNotEmpty()) {
+                    Column(horizontalAlignment = CenterHorizontally) {
+                        CustomKeyArea()
+                    }
+                }
             }
         }
+    }
+
+    @Composable
+    private fun CustomKeyArea() {
+        var key by remember { mutableStateOf("LoginScreen.Input.Email") }
+        var value by remember { mutableStateOf("") }
+        OutlinedTextField(value = key, { key = it }, label = { Text(text = "Key") })
+        Button(onClick = {
+            value = dynoDict.get(Key(key))
+        }, enabled = key.trim().isNotEmpty()) {
+            Text(text = "Find Translation")
+        }
+        Text(text = "Result - $value")
     }
 
     @Composable
@@ -100,7 +128,11 @@ class MainActivity : AppCompatActivity() {
     }
 
     @Composable
-    fun LanguageRadioButton(language: String, isSelected: Boolean, onSelected: (String) -> Unit = {}) {
+    fun LanguageRadioButton(
+        language: String,
+        isSelected: Boolean,
+        onSelected: (String) -> Unit = {}
+    ) {
         Row(
             verticalAlignment = CenterVertically,
             modifier = Modifier
@@ -135,30 +167,45 @@ class MainActivity : AppCompatActivity() {
         }
 
         val remoteManager =
-            RemoteManagerImpl(RemoteSettings("https://raw.githubusercontent.com/mkovalyk/GraphicEditor/master/"), json)
+            RemoteManagerImpl(
+                RemoteSettings("https://raw.githubusercontent.com/mkovalyk/GraphicEditor/master/"),
+                json
+            )
         val bucketsStorage = FileBucketsStorage(filesDir, json)
         val metadataStorage = FileMetadataStorage(filesDir, json)
         storageManager = StorageManagerImpl(bucketsStorage, metadataStorage)
-        val manager = DynoDictManagerImpl(remoteManager, storageManager!!, object : DynodictCallback {
+        val callback = object : DynodictCallback {
             override fun onErrorOccurred(ex: Exception): ExceptionResolution {
-                Log.d("XXX", "errorOccurred: $ex")
+                Log.d("QQQQ", "errorOccurred: $ex")
                 return ExceptionResolution.Handled
             }
 
             override fun onStringsUpdated() {
-                TODO("Not yet implemented")
+                Log.d("QQQQ", "onStringsUpdated: ")
             }
-        })
+
+            override fun onFailedToRetrieveDefaultData(ex: Exception): ExceptionResolution {
+                Log.d("QQQQ", "onFailedToRetrieveDefaultData: $ex")
+                return ExceptionResolution.Handled
+            }
+        }
+        val manager = DynoDictManagerImpl(remoteManager, storageManager!!, callback)
+
+        val settings = Settings(FallbackStrategy.ReturnDefault)
+        val defaultBucketStorage = DefaultBucketsFileStorage(filesDir, json, assets)
+        val defaultMetadataStorage = DefaultMetadataFileStorage(filesDir, json, assets)
+        val provider = StringProviderImpl(
+            bucketsStorage,
+            metadataStorage,
+            settings,
+            defaultBucketStorage,
+            defaultMetadataStorage
+        )
 
         return Dynodict(
-            StringProviderImpl(
-                bucketsStorage,
-                metadataStorage,
-                Settings(FallbackStrategy.ThrowException),
-                bucketsStorage
-            ),
+            provider,
             manager,
-            Settings(FallbackStrategy.ThrowException)
+            settings
         )
     }
 
@@ -173,6 +220,7 @@ class MainActivity : AppCompatActivity() {
             }
             val result = storageManager!!.getAllForLanguage(selectedLang)
             strings.value = result
+            dynoDict.setLocale(DLocale(selectedLang))
         }
     }
 }

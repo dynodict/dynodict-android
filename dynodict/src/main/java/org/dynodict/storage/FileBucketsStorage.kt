@@ -6,11 +6,11 @@ import kotlinx.serialization.json.encodeToStream
 import org.dynodict.model.Bucket
 import java.io.File
 
-class FileBucketsStorage(
-    private val folder: File,
-    private val json: Json
+open class FileBucketsStorage(
+    protected val folder: File,
+    protected val json: Json
 ) : BucketsStorage {
-    override suspend fun store(bucket: Bucket) {
+    override suspend fun save(bucket: Bucket) {
         val bucketFile = File(folder, bucket.generateFilename())
         createFileIfNeeded(bucketFile)
         with(bucketFile.outputStream()) {
@@ -18,14 +18,7 @@ class FileBucketsStorage(
         }
     }
 
-    private fun createFileIfNeeded(file: File) {
-        if (!file.exists()) {
-            file.createNewFile()
-        }
-    }
-
-    override suspend fun get(name: String, language: String, schemeVersion: Int): Bucket? {
-        val filename = generateBucketName(name, language, schemeVersion)
+    override suspend fun get(filename: String): Bucket? {
         val bucketFile = File(folder, filename)
         if (!bucketFile.exists()) return null
 
@@ -34,10 +27,6 @@ class FileBucketsStorage(
 }
 
 fun Bucket.generateFilename(): String {
-    // TODO handle name+ language as nullable object
+    // TODO handle name + language as nullable object
     return generateBucketName(name!!, language!!, schemeVersion)
-}
-
-private fun generateBucketName(name: String, language: String, schemeVersion: Int): String {
-    return name + "_$schemeVersion" + "_$language.json"
 }

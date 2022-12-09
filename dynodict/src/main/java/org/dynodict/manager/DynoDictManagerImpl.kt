@@ -1,7 +1,9 @@
 package org.dynodict.manager
 
 import org.dynodict.DynodictCallback
-import org.dynodict.model.DString
+import org.dynodict.ExceptionResolution.Handled
+import org.dynodict.ExceptionResolution.NotHandled
+import org.dynodict.model.metadata.BucketMetadata
 import org.dynodict.model.metadata.BucketsMetadata
 import org.dynodict.remote.RemoteManager
 import org.dynodict.storage.StorageManager
@@ -9,28 +11,42 @@ import org.dynodict.storage.StorageManager
 
 class DynoDictManagerImpl(
     private val remoteManager: RemoteManager,
-    val storageManager: StorageManager,
+    private val storageManager: StorageManager,
     private val dynodictCallback: DynodictCallback
 ) : DynoDictManager {
 
     override suspend fun updateTranslations() {
+        val metadata = updateMetadata() ?: return
+
+        updateBuckets(metadata)
+    }
+
+    override suspend fun updateMetadata(): BucketsMetadata? {
         val metadata = remoteManager.getMetadata()
         if (metadata == null) {
-            dynodictCallback.onErrorOccurred(IllegalStateException("Error during getting the metadata"))
-            return
+            val exception = IllegalStateException("Error during getting the metadata")
+            when (dynodictCallback.onErrorOccurred(exception)) {
+                Handled -> {
+                    // just return the function since this scenario is already handled
+                    return null
+                }
+                NotHandled -> {
+                    throw exception
+                }
+            }
         }
 
-        val result = remoteManager.getStrings(metadata)
-
         storageManager.storeMetadata(metadata)
+        return metadata
+    }
+
+    override suspend fun updateBuckets(bucketsMetadata: BucketsMetadata) {
+        val result = remoteManager.getStrings(bucketsMetadata)
+
         storageManager.storeBuckets(result)
     }
 
-    suspend fun getMetadata(): BucketsMetadata? {
-        return storageManager.getMetadata()
-    }
-
-    suspend fun getAllForLanguage(language: String): List<DString> {
-        return storageManager.getAllForLanguage(language)
+    override suspend fun removeBuckets(buckets: List<BucketMetadata>) {
+        storageManager.removeBuckets(buckets)
     }
 }

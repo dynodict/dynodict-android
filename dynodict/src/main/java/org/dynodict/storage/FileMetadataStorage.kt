@@ -6,27 +6,20 @@ import kotlinx.serialization.json.encodeToStream
 import org.dynodict.model.metadata.BucketsMetadata
 import java.io.File
 
-class FileMetadataStorage(
-    private val folder: File,
-    private val json: Json
+open class FileMetadataStorage(
+    folder: File,
+    protected val json: Json,
+    protected val metadataFile: File = File(folder, NAME)
 ) : MetadataStorage {
-    override suspend fun store(metadata: BucketsMetadata) {
-        createFileIfNeeded(folder).apply {
-            json.encodeToStream(metadata, this.outputStream())
+    override suspend fun save(metadata: BucketsMetadata?) {
+        createFileIfNeeded(metadataFile).also {
+            json.encodeToStream(metadata, it.outputStream())
         }
-    }
-
-    private fun createFileIfNeeded(folder: File): File {
-        val metadataFile = File(folder, NAME)
-        if (!metadataFile.exists()) {
-            metadataFile.createNewFile()
-        }
-        return metadataFile
     }
 
     override suspend fun get(): BucketsMetadata? {
-        createFileIfNeeded(folder).apply {
-            return json.decodeFromStream<BucketsMetadata>(inputStream())
+        createFileIfNeeded(metadataFile).also {
+            return json.decodeFromStream<BucketsMetadata>(it.inputStream())
         }
     }
 

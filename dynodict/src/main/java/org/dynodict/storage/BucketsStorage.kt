@@ -4,23 +4,17 @@ import org.dynodict.model.Bucket
 import org.dynodict.model.metadata.BucketsMetadata
 
 interface BucketsStorage {
-    suspend fun store(bucket: Bucket)
-    suspend fun get(name: String, language: String, schemeVersion: Int): Bucket?
+    /**
+     * @param bucket if translations are empty - removes the file
+     */
+    suspend fun save(bucket: Bucket)
+    suspend fun get(filename: String): Bucket?
 }
 
 interface MetadataStorage {
-    suspend fun store(metadata: BucketsMetadata)
+    /**
+     *
+     */
+    suspend fun save(metadata: BucketsMetadata?)
     suspend fun get(): BucketsMetadata?
 }
-
-interface ObservableStorage : BucketsStorage {
-    var listener: (() -> Unit)?
-}
-
-//class InMemoryObservableStorage() : ObservableStorage {
-//    override var listener: (() -> Unit)? = null
-//    override var value: Map<DString, String> by Delegates.observable(mutableMapOf()) { changed, old, new ->
-//        if (old != new)
-//            listener?.invoke()
-//    }
-//}
