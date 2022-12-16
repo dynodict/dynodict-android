@@ -3,6 +3,7 @@ pluginManagement {
         gradlePluginPortal()
         google()
         mavenCentral()
+        mavenLocal()
     }
 }
 dependencyResolutionManagement {
@@ -15,3 +16,4 @@ dependencyResolutionManagement {
 rootProject.name = "Dynodict"
 include ':app'
 include ':dynodict'
+include ':plugin'
