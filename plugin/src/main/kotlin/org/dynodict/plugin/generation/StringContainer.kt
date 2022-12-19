@@ -1,3 +1,8 @@
 package org.dynodict.plugin.generation
 
-data class StringContainer(val key: String, val children: MutableList<StringContainer>, val value: String? = null)
+import org.dynodict.plugin.remote.DString
+
+sealed class StringModel {
+    data class Container(val children: MutableMap<String, StringModel>) : StringModel()
+    data class Leaf(val value: DString) : StringModel()
+}

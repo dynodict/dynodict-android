@@ -11,7 +11,7 @@ class DownloadStringsPlugin : Plugin<Project> {
 
         target.tasks.register<DownloadStringsTask>("downloadStrings") {
             val projectDirectory = target.layout.projectDirectory
-            outputSources.set(projectDirectory.dir("src/main/java"))
+            sourcesDirectory.set(projectDirectory.dir("src/main/kotlin"))
             assetsDirectory.set(projectDirectory.dir("src/main/assets"))
         }
     }
