@@ -3,10 +3,10 @@
 * Finish default approach +
 * Don't validate url parameter +
 * Initialize default Dynodict with parameters and use Content provider+
-* rename java to kotlin folders
+* rename java to kotlin folders + 
 * Add property to set source path
-* Add package
-* Add imports
+* Add package + 
+* Add imports + 
 
 Done:
 
