@@ -9,7 +9,7 @@ class TreeInflater {
         bucket.translations.map { dString ->
             val splitted = dString.key.split(".")
 
-            var parent: StringModel.Container? = null
+            var parent: StringModel? = null
             splitted.forEachIndexed { index, value ->
                 var currentContainer =
                     if (parent == null) {
@@ -17,17 +17,17 @@ class TreeInflater {
                         roots[value]
                     } else {
                         parent?.children?.get(value)
-                    } as StringModel.Container?
+                    }
 
                 if (currentContainer == null) {
-                    currentContainer = StringModel.Container(mutableMapOf())
+                    currentContainer = StringModel()
                         .also {
                             if (parent == null) {
                                 roots[value] = it
                             } else if (index < splitted.lastIndex) {
                                 parent?.children?.put(value, it)
                             } else if (index == splitted.lastIndex) {
-                                parent?.children?.put(value, StringModel.Leaf(dString))
+                                parent?.children?.put(value, StringModel(value = dString))
                             }
                         }
                 }
