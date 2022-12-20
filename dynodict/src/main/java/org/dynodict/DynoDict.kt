@@ -52,7 +52,7 @@ class DynoDict(
     }
 
     companion object {
-        var instance: DynoDict? = null
+        lateinit var instance: DynoDict
             private set
 
         private const val TAG = "DynoDict"

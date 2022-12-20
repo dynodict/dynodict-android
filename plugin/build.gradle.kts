@@ -2,7 +2,6 @@ plugins {
     `java-gradle-plugin`
     `kotlin-dsl`
     `maven-publish`
-//    kotlin("jvm") version "1.6.21"
     id("org.jetbrains.kotlin.plugin.serialization").version("1.7.20")
 }
 
@@ -42,7 +41,5 @@ dependencies {
 
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.mockito:mockito-core:4.8.0")
-    testImplementation ("org.mockito.kotlin:mockito-kotlin:4.0.0")
+    testImplementation("org.mockito.kotlin:mockito-kotlin:4.0.0")
 }
-
-//apply<org.dynodict.plugin.DownloadStringsPlugin>()

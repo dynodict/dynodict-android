@@ -5,6 +5,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
+import org.dynodict.plugin.generation.ObjectsGenerator
 import org.dynodict.plugin.generation.StringModel
 import org.dynodict.plugin.generation.TreeInflater
 import org.dynodict.plugin.remote.Bucket
@@ -15,6 +16,7 @@ import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
+import java.io.File
 
 open class DownloadStringsTask @javax.inject.Inject constructor(objects: ObjectFactory) :
     DefaultTask() {
@@ -37,7 +39,8 @@ open class DownloadStringsTask @javax.inject.Inject constructor(objects: ObjectF
         val remoteManager =
             RemoteManagerImpl(
                 RemoteSettings("https://raw.githubusercontent.com/mkovalyk/GraphicEditor/master/"),
-                json)
+                json
+            )
         runBlocking {
 
             coroutineScope.launch {
@@ -64,24 +67,34 @@ open class DownloadStringsTask @javax.inject.Inject constructor(objects: ObjectF
     }
 
     private fun mapBucket(bucket: Bucket, json: Json) {
-        val builder = StringBuilder()
 
         val roots = treeInflater.generateTree(bucket)
 
-        generateObjects(roots, sourcesDirectory)
+        generateAndWrite(roots, sourcesDirectory)
 
         // Generate objects of Values
         val processed = bucket.translations.map {
             // clear params since it should not be used in resulting JSON
             it.copy(params = listOf())
         }
+
+
     }
 
-    private fun generateObjects(
+    private fun generateAndWrite(
         roots: MutableMap<String, StringModel>,
         sourcesDirectory: DirectoryProperty
     ) {
+        val result = ObjectsGenerator("org.dynodict").generate(roots)
+        val folder = sourcesDirectory.get().asFile
+        folder.mkdirs()
 
+        val file = File(folder, "Strings.kt")
+        if (!file.exists()) {
+            file.createNewFile()
+        }
+        file.writeText(result)
+        println("Job done")
     }
 
 
