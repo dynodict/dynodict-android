@@ -1,7 +1,9 @@
 package org.dynodict.plugin.generation
 
+import org.dynodict.plugin.exception.IllegalTypeException
 import org.dynodict.plugin.remote.DString
 import org.dynodict.plugin.remote.Parameter
+import java.util.*
 
 class ObjectsGenerator(private val packageName: String) {
 
@@ -25,6 +27,7 @@ class ObjectsGenerator(private val packageName: String) {
         appendLine("import org.dynodict.DynoDict")
         appendLine("import org.dynodict.model.StringKey")
         appendLine("import org.dynodict.model.Key")
+        appendLine("import org.dynodict.model.Parameter")
         appendLine()
     }
 
@@ -34,6 +37,7 @@ class ObjectsGenerator(private val packageName: String) {
         parent: String?,
         level: Int
     ) {
+
         if (model.children.isNotEmpty()) {
             generateContainer(parent, key, model, level)
         }
@@ -47,7 +51,7 @@ class ObjectsGenerator(private val packageName: String) {
         parent: String?, key: String, model: StringModel, level: Int
     ) {
         val parentClass = if (parent == null) "" else ", $parent"
-        appendLineWithTab("object $key : StringKey(\"$key\"$parentClass ) {", level)
+        appendLineWithTab("object $key : StringKey(\"$key\"$parentClass) {", level)
         model.children.forEach { generateModel(it.key, it.value, key, level + 1) }
         appendLineWithTab("}", level)
     }
@@ -59,7 +63,7 @@ class ObjectsGenerator(private val packageName: String) {
         level: Int
     ) {
         val parentClass = if (parent == null) "" else ", $parent"
-        appendLineWithTab("object $key : StringKey(\"$key\"$parentClass ) {", level)
+        appendLineWithTab("object $key : StringKey(\"$key\"$parentClass) {", level)
         // ------------------------------------------------------------------------------
         appendWithTab("fun get(", level + 1)
         model.params.forEachIndexed { index, parameter ->
@@ -68,21 +72,44 @@ class ObjectsGenerator(private val packageName: String) {
             append(parameter.generateCode() + suffix)
         }
         appendLine("): String {")
-        appendLineWithTab("return DynoDict.instance.get(Key(absolutePath))", level + 2)
+        val paramsString = model.params.prepareListOfParameters()
+        appendLineWithTab(
+            "return DynoDict.instance.get(Key(absolutePath, params = $paramsString))",
+            level + 2)
         appendLineWithTab("}", tabs = level + 1)
         // ------------------------------------------------------------------------------
         appendLineWithTab("}", level)
     }
 
-    private fun Parameter.generateCode(): String {
-        val kotlinType = when {
-            "String".equals(type, ignoreCase = true) -> "String"
-            "Int".equals(type, ignoreCase = true) -> "Int"
-            "Float".equals(type, ignoreCase = true) -> "Float"
-            "Double".equals(type, ignoreCase = true) -> "Float"
-            else -> "Any"
+    private fun List<Parameter>.prepareListOfParameters(): String {
+        val params = joinToString(",") { item ->
+            val type = item.identifyType()
+
+            val format = if (item.format == null) "" else ", format = \"${item.format}\""
+            "Parameter.${type}Parameter(${item.key}$format)"
         }
-        return "$key: $kotlinType"
+        return "listOf($params)"
+    }
+
+    private val types = mapOf(
+        "string" to "String",
+        "int" to "Int",
+        "long" to "Long",
+        "float" to "Float",
+        "double" to "Double")
+
+    private fun Parameter.generateCode(): String {
+        val evaluatedType = identifyType()
+        return "$key: $evaluatedType"
+    }
+
+    private fun Parameter.identifyType(): String {
+        val evaluatedType = types[type.toLowerCase(Locale.getDefault())]
+
+        if (evaluatedType == null) {
+            throw IllegalTypeException("This type ($type) is not supported. Please use one of: ${types.keys}")
+        }
+        return evaluatedType
     }
 
     private fun StringBuilder.appendLineWithTab(value: String, tabs: Int) {

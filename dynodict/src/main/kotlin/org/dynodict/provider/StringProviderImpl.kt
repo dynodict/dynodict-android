@@ -67,7 +67,6 @@ class StringProviderImpl(
         return result
     }
 
-    @Suppress("FoldInitializerAndIfToElvis")
     override fun get(key: Key): String {
         val dString = buckets[key]
         return dString?.value

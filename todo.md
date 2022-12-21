@@ -7,11 +7,11 @@
 - [ ] Add property to set source path
 - [x] Add package
 - [x] Add imports
-- [ ] Inflate parameters
+- [ ] Inflate parameters 
 - [ ] Generate JSON for assets folder
-- [ ] Attach folder for package
-- [ ] Custom formatter Ideas:
-- [ ]
+- [x] Attach folder for package
+- [ ] Generate list of required  Formatters 
+
 
 ```json
 {

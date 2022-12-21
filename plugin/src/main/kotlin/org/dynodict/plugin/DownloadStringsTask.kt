@@ -78,15 +78,15 @@ open class DownloadStringsTask @javax.inject.Inject constructor(objects: ObjectF
             it.copy(params = listOf())
         }
 
-
     }
 
     private fun generateAndWrite(
         roots: MutableMap<String, StringModel>,
         sourcesDirectory: DirectoryProperty
     ) {
-        val result = ObjectsGenerator("org.dynodict").generate(roots)
-        val folder = sourcesDirectory.get().asFile
+        val packageName = "org.dynodict"
+        val result = ObjectsGenerator(packageName).generate(roots)
+        val folder = File(sourcesDirectory.get().asFile, packageName.replace(".", "/"))
         folder.mkdirs()
 
         val file = File(folder, "Strings.kt")
