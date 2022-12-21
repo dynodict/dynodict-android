@@ -1,5 +1,8 @@
 package org.dynodict.plugin.generation
 
+import org.dynodict.plugin.remote.DString
+import org.dynodict.plugin.remote.Parameter
+
 class ObjectsGenerator(private val packageName: String) {
 
     fun generate(roots: Map<String, StringModel>): String {
@@ -25,13 +28,18 @@ class ObjectsGenerator(private val packageName: String) {
         appendLine()
     }
 
-    private fun StringBuilder.generateModel(key: String, model: StringModel, parent: String?, level: Int) {
+    private fun StringBuilder.generateModel(
+        key: String,
+        model: StringModel,
+        parent: String?,
+        level: Int
+    ) {
         if (model.children.isNotEmpty()) {
             generateContainer(parent, key, model, level)
         }
         val value = model.value
         if (value != null) {
-            generateLeaf(parent, key, level)
+            generateLeaf(parent, key, value, level)
         }
     }
 
@@ -44,19 +52,47 @@ class ObjectsGenerator(private val packageName: String) {
         appendLineWithTab("}", level)
     }
 
-
-    private fun StringBuilder.generateLeaf(parent: String?, key: String, level: Int) {
+    private fun StringBuilder.generateLeaf(
+        parent: String?,
+        key: String,
+        model: DString,
+        level: Int
+    ) {
         val parentClass = if (parent == null) "" else ", $parent"
         appendLineWithTab("object $key : StringKey(\"$key\"$parentClass ) {", level)
-        appendLineWithTab("fun get(): String {", level + 1)
+        // ------------------------------------------------------------------------------
+        appendWithTab("fun get(", level + 1)
+        model.params.forEachIndexed { index, parameter ->
+            val suffix =
+                if (index < model.params.lastIndex) ", " else ""
+            append(parameter.generateCode() + suffix)
+        }
+        appendLine("): String {")
         appendLineWithTab("return DynoDict.instance.get(Key(absolutePath))", level + 2)
         appendLineWithTab("}", tabs = level + 1)
+        // ------------------------------------------------------------------------------
         appendLineWithTab("}", level)
+    }
+
+    private fun Parameter.generateCode(): String {
+        val kotlinType = when {
+            "String".equals(type, ignoreCase = true) -> "String"
+            "Int".equals(type, ignoreCase = true) -> "Int"
+            "Float".equals(type, ignoreCase = true) -> "Float"
+            "Double".equals(type, ignoreCase = true) -> "Float"
+            else -> "Any"
+        }
+        return "$key: $kotlinType"
     }
 
     private fun StringBuilder.appendLineWithTab(value: String, tabs: Int) {
         repeat(tabs) { append(TAB) }
         appendLine(value)
+    }
+
+    private fun StringBuilder.appendWithTab(value: String, tabs: Int) {
+        repeat(tabs) { append(TAB) }
+        append(value)
     }
 
     companion object {

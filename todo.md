@@ -1,14 +1,12 @@
 # TODO
 
-* Finish default approach +
-* Don't validate url parameter +
-* Initialize default Dynodict with parameters and use Content provider+
-* rename java to kotlin folders + 
-* Add property to set source path
-* Add package + 
-* Add imports + 
-
-Done:
+- [x] Finish default approach
+- [x] Don't validate url parameter
+- [x] Initialize default Dynodict with parameters and use Content provider
+- [x] rename java to kotlin folders 
+- [ ] Add property to set source path
+- [x] Add package 
+- [x] Add imports 
 
 1. Create plugin to generate code based on input metadata, YAML, JSON
 2. Abstract away from Kotlin Serialization stuff
