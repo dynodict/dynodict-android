@@ -45,7 +45,7 @@ class MainActivity : AppCompatActivity() {
             val selectedLanguageState by selectedLanguage.collectAsState()
             Column(horizontalAlignment = CenterHorizontally) {
                 Button(onClick = { startGettingMetadata() }) {
-                    Text(text = "Start getting translations")
+                    Text(text = "Get strings")
                 }
                 Column(
                     modifier = Modifier

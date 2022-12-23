@@ -7,11 +7,11 @@
 - [ ] Add property to set source path
 - [x] Add package
 - [x] Add imports
-- [ ] Inflate parameters 
+- [x] Inflate parameters
 - [ ] Generate JSON for assets folder
 - [x] Attach folder for package
-- [ ] Generate list of required  Formatters
-
+- [ ] Generate list of required Formatters
+- [ ] Add enum FormatterNotFoundStrategy to take care the scenario when format can't be found
 
 ```json
 {

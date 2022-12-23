@@ -1,6 +1,7 @@
 package org.dynodict.provider
 
 import org.dynodict.DefaultStringNotFoundException
+import org.dynodict.FormatterNotFoundException
 import org.dynodict.StringNotFoundException
 import org.dynodict.model.DLocale
 import org.dynodict.model.DString
@@ -9,6 +10,7 @@ import org.dynodict.model.Parameter
 import org.dynodict.model.metadata.BucketMetadata
 import org.dynodict.model.settings.FallbackStrategy
 import org.dynodict.model.settings.Settings
+import org.dynodict.org.dynodict.formatter.*
 import org.dynodict.storage.BucketsStorage
 import org.dynodict.storage.MetadataStorage
 import org.dynodict.storage.generateBucketName
@@ -26,7 +28,12 @@ class StringProviderImpl(
 
     private val defaultBuckets: MutableMap<Key, DString> = ConcurrentHashMap()
 
-    private val defaultFormatters =
+    private val formatters = mutableMapOf(
+        DEFAULT_INT_FORMATTER to IntFormatter(),
+        DEFAULT_LONG_FORMATTER to LongFormatter(),
+        DEFAULT_FLOAT_FORMATTER to FloatFormatter(),
+        DEFAULT_STRING_FORMATTER to StringFormatter()
+    )
 
     override suspend fun setLocale(locale: DLocale) {
         val metadata = metadataStorage.get() ?: return
@@ -76,8 +83,35 @@ class StringProviderImpl(
 
         if (string.isEmpty()) return string
 
+        var result = string
         // inflate parameters
+        parameters.forEach { parameter ->
+            val formattedParam = prepareParameter(parameter)
 
+            result = result.replace("{${parameter.key}}", formattedParam, ignoreCase = true)
+        }
+        return result
+    }
+
+    private fun findFormatter(parameter: Parameter): Formatter<*>? {
+        if (parameter.format != null) return formatters[parameter.format]
+        val id = when (parameter) {
+            is Parameter.IntParameter -> DEFAULT_INT_FORMATTER
+            is Parameter.LongParameter -> DEFAULT_LONG_FORMATTER
+            is Parameter.FloatParameter -> DEFAULT_FLOAT_FORMATTER
+            is Parameter.StringParameter -> DEFAULT_STRING_FORMATTER
+        }
+        return formatters[id]
+    }
+
+    private fun prepareParameter(parameter: Parameter): String {
+        val formatter = findFormatter(parameter)
+
+        if (formatter == null) {
+            throw FormatterNotFoundException("Can't find Formatter with format: ${parameter.format}")
+        } else {
+            return formatter.format(parameter.value)
+        }
     }
 
     private fun handleNotFoundString(key: Key): String {
@@ -99,5 +133,12 @@ class StringProviderImpl(
                 return value
             }
         }
+    }
+
+    companion object {
+        const val DEFAULT_INT_FORMATTER = "DefaultIntFormatter"
+        const val DEFAULT_LONG_FORMATTER = "DefaultLongFormatter"
+        const val DEFAULT_FLOAT_FORMATTER = "DefaultFloatFormatter"
+        const val DEFAULT_STRING_FORMATTER = "DefaultStringFormatter"
     }
 }

@@ -7,6 +7,7 @@ import org.dynodict.manager.DynoDictManager
 import org.dynodict.manager.DynoDictManagerImpl
 import org.dynodict.model.DLocale
 import org.dynodict.model.Key
+import org.dynodict.model.Parameter
 import org.dynodict.model.metadata.BucketMetadata
 import org.dynodict.model.metadata.BucketsMetadata
 import org.dynodict.model.settings.Settings
@@ -31,8 +32,8 @@ class DynoDict(
         provider.setLocale(locale)
     }
 
-    override fun get(key: Key): String {
-        return provider.get(key)
+    override fun get(key: Key, vararg parameters: Parameter): String {
+        return provider.get(key, *parameters)
     }
 
     override suspend fun updateStrings() {

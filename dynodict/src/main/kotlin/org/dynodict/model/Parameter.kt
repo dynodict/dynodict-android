@@ -1,14 +1,14 @@
 package org.dynodict.model
 
-sealed class Parameter(val key: String, val format: String?) {
-    class IntParameter(val value: Int, key: String, format: String? = null) : Parameter(key, format)
-    class LongParameter(val value: Long, key: String, format: String? = null) :
-        Parameter(key, format)
+sealed class Parameter(val value: Any, val key: String, val format: String?) {
+    class IntParameter(value: Int, key: String, format: String? = null) : Parameter(value, key, format)
+    class LongParameter(value: Long, key: String, format: String? = null) :
+        Parameter(value, key, format)
 
-    class FloatParameter(val value: Float, key: String, format: String? = null) :
-        Parameter(key, format)
+    class FloatParameter(value: Float, key: String, format: String? = null) :
+        Parameter(value, key, format)
 
-    class StringParameter(val value: String, key: String, format: String? = null) :
-        Parameter(key, format)
+    class StringParameter(value: String, key: String, format: String? = null) :
+        Parameter(value, key, format)
 }
 
