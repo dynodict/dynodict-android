@@ -10,7 +10,7 @@
 - [ ] Inflate parameters 
 - [ ] Generate JSON for assets folder
 - [x] Attach folder for package
-- [ ] Generate list of required  Formatters 
+- [ ] Generate list of required  Formatters
 
 
 ```json

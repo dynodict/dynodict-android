@@ -5,6 +5,7 @@ import org.dynodict.StringNotFoundException
 import org.dynodict.model.DLocale
 import org.dynodict.model.DString
 import org.dynodict.model.Key
+import org.dynodict.model.Parameter
 import org.dynodict.model.metadata.BucketMetadata
 import org.dynodict.model.settings.FallbackStrategy
 import org.dynodict.model.settings.Settings
@@ -24,6 +25,8 @@ class StringProviderImpl(
     private val buckets: MutableMap<Key, DString> = ConcurrentHashMap()
 
     private val defaultBuckets: MutableMap<Key, DString> = ConcurrentHashMap()
+
+    private val defaultFormatters =
 
     override suspend fun setLocale(locale: DLocale) {
         val metadata = metadataStorage.get() ?: return
@@ -67,26 +70,34 @@ class StringProviderImpl(
         return result
     }
 
-    override fun get(key: Key): String {
+    override fun get(key: Key, vararg parameters: Parameter): String {
         val dString = buckets[key]
-        return dString?.value
-            ?: when (settings.fallbackStrategy) {
-                FallbackStrategy.ThrowException -> {
-                    throw StringNotFoundException("String not found for key $key and locale: $locale")
-                }
-                FallbackStrategy.EmptyString -> {
-                    ""
-                }
-                FallbackStrategy.ReturnDefault -> {
-                    // It should never be null for default storage
-                    val value = defaultBuckets[key]?.value
-                    
-                    if (value == null) {
-                        throw DefaultStringNotFoundException("Default String can not be found for key:$key")
-                    }
+        val string = dString?.value ?: handleNotFoundString(key)
 
-                    value
-                }
+        if (string.isEmpty()) return string
+
+        // inflate parameters
+
+    }
+
+    private fun handleNotFoundString(key: Key): String {
+        when (settings.fallbackStrategy) {
+            FallbackStrategy.ThrowException -> {
+                throw StringNotFoundException("String not found for key $key and locale: $locale")
             }
+            FallbackStrategy.EmptyString -> {
+                return ""
+            }
+            FallbackStrategy.ReturnDefault -> {
+                // It should never be null for default storage
+                val value = defaultBuckets[key]?.value
+
+                if (value == null) {
+                    throw DefaultStringNotFoundException("Default String can not be found for key:$key")
+                }
+
+                return value
+            }
+        }
     }
 }
