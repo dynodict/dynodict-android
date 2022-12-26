@@ -28,7 +28,7 @@ class StringProviderImpl(
 
     private val defaultBuckets: MutableMap<Key, DString> = ConcurrentHashMap()
 
-    private val formatters = mutableMapOf(
+    private val formatters: MutableMap<String, DynoDictFormatter<*>?> = mutableMapOf(
         DEFAULT_INT_FORMATTER to IntFormatter(),
         DEFAULT_LONG_FORMATTER to LongFormatter(),
         DEFAULT_FLOAT_FORMATTER to FloatFormatter(),
@@ -93,7 +93,11 @@ class StringProviderImpl(
         return result
     }
 
-    private fun findFormatter(parameter: Parameter): Formatter<*>? {
+    override fun registerFormatter(key: String, value: DynoDictFormatter<*>?) {
+        formatters[key] = value
+    }
+
+    private fun findFormatter(parameter: Parameter): DynoDictFormatter<*>? {
         if (parameter.format != null) return formatters[parameter.format]
         val id = when (parameter) {
             is Parameter.IntParameter -> DEFAULT_INT_FORMATTER

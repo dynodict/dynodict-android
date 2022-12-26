@@ -11,6 +11,7 @@ import org.dynodict.model.Parameter
 import org.dynodict.model.metadata.BucketMetadata
 import org.dynodict.model.metadata.BucketsMetadata
 import org.dynodict.model.settings.Settings
+import org.dynodict.org.dynodict.formatter.DynoDictFormatter
 import org.dynodict.provider.StringProvider
 import org.dynodict.provider.StringProviderImpl
 import org.dynodict.remote.RemoteManagerImpl
@@ -34,6 +35,10 @@ class DynoDict(
 
     override fun get(key: Key, vararg parameters: Parameter): String {
         return provider.get(key, *parameters)
+    }
+
+    override fun registerFormatter(key: String, value: DynoDictFormatter<*>?) {
+        provider.registerFormatter(key, value)
     }
 
     override suspend fun updateStrings() {

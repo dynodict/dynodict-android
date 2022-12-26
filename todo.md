@@ -12,6 +12,8 @@
 - [x] Attach folder for package
 - [ ] Generate list of required Formatters
 - [ ] Add enum FormatterNotFoundStrategy to take care the scenario when format can't be found
+- [ ] Get rid of Key class since it is redundant
+- [x] Add tests for StringProviderImpl
 
 ```json
 {

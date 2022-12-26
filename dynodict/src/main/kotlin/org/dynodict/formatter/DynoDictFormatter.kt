@@ -1,21 +1,21 @@
 package org.dynodict.org.dynodict.formatter
 
-interface Formatter<T> {
+interface DynoDictFormatter<T> {
     fun format(value: Any): String
 }
 
-class IntFormatter() : Formatter<Int> {
+class IntFormatter() : DynoDictFormatter<Int> {
     override fun format(value: Any) = value.toString()
 }
 
-class LongFormatter() : Formatter<Long> {
+class LongFormatter() : DynoDictFormatter<Long> {
     override fun format(value: Any) = value.toString()
 }
 
-class FloatFormatter() : Formatter<Float> {
+class FloatFormatter() : DynoDictFormatter<Float> {
     override fun format(value: Any) = value.toString()
 }
 
-class StringFormatter() : Formatter<String> {
+class StringFormatter() : DynoDictFormatter<String> {
     override fun format(value: Any) = value.toString()
 }
