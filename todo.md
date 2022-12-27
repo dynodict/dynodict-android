@@ -8,7 +8,7 @@
 - [x] Add package
 - [x] Add imports
 - [x] Inflate parameters
-- [ ] Generate JSON for assets folder
+- [x] Generate JSON for assets folder
 - [x] Attach folder for package
 - [ ] Generate list of required Formatters
 - [ ] Add enum FormatterNotFoundStrategy to take care the scenario when format can't be found

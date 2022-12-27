@@ -13,7 +13,7 @@ class DownloadStringsPlugin : Plugin<Project> {
             val projectDirectory = target.layout.projectDirectory
             sourcesDirectory.set(projectDirectory.dir("src/main/kotlin"))
             assetsDirectory.set(projectDirectory.dir("src/main/assets"))
-            println("Group: ${target.subprojects}. ${target.configurations}")
+            println("Group: $projectDirectory")
         }
     }
 }

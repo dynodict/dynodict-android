@@ -2,13 +2,14 @@ package org.dynodict.plugin
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.encodeToStream
 import org.dynodict.plugin.generation.ObjectsGenerator
 import org.dynodict.plugin.generation.StringModel
 import org.dynodict.plugin.generation.TreeInflater
 import org.dynodict.plugin.remote.Bucket
+import org.dynodict.plugin.remote.BucketsMetadata
 import org.dynodict.plugin.remote.RemoteManagerImpl
 import org.dynodict.plugin.remote.RemoteSettings
 import org.gradle.api.DefaultTask
@@ -35,55 +36,93 @@ open class DownloadStringsTask @javax.inject.Inject constructor(objects: ObjectF
     fun download() {
         val json = Json {
             ignoreUnknownKeys = true
+            prettyPrint = true
         }
+
+        println("Download started")
         val remoteManager =
             RemoteManagerImpl(
                 RemoteSettings("https://raw.githubusercontent.com/mkovalyk/GraphicEditor/master/"),
                 json
             )
         runBlocking {
+            // 1. Download metadata
+            val metadata = remoteManager.getMetadata()
+                ?: throw IllegalStateException("There is an error during retrieving of the metadata")
 
-            coroutineScope.launch {
-                // 1. Download metadata
-                val metadata = remoteManager.getMetadata()
-                    ?: throw IllegalStateException("There is an error during retrieving of the metadata")
+            println("metadata: $metadata")
+            // copy metadata and set only default language
+            val metadataWithDefault =
+                metadata.copy(languages = listOf(metadata.defaultLanguage))
 
-                // copy metadata and set only default language
-                val metadataWithDefault =
-                    metadata.copy(languages = listOf(metadata.defaultLanguage))
+            // 2. Download buckets
+            val buckets = remoteManager.getStrings(metadataWithDefault)
+            // 3. Generate sources based on the default metadata
 
-                // 2. Download buckets
-                val buckets = remoteManager.getStrings(metadataWithDefault)
-                // 3. Generate sources based on the default metadata
-                buckets.forEach {
-                    mapBucket(it, json)
-                }
-                println("Got ${buckets.size} buckets")
+            val assets = assetsDirectory.get().asFile
+
+            buckets.forEach {
+                mapBucket(it)
+                // Generate objects of Values
+                generateAssetsJson(it, json, assets)
             }
+
+            println("Got ${buckets.size} buckets")
+
+            writeMetadataToAssets(metadata, json, assets)
         }
 
         // 4. Copy default buckets to /assets folder
         println("Downloading finished")
     }
 
-    private fun mapBucket(bucket: Bucket, json: Json) {
+    private fun writeMetadataToAssets(metadata: BucketsMetadata, json: Json, assetsDirectory: File) {
+        assetsDirectory.mkdirs()
+        val file = File(assetsDirectory, "$PREFIX_DEFAULT_FILE$METADATA_NAME")
+        if (file.exists()) {
+            file.delete()
+        }
+        file.createNewFile()
 
+        json.encodeToStream(metadata, file.outputStream())
+        println("Metadata is copied")
+    }
+
+    private fun mapBucket(bucket: Bucket) {
         val roots = treeInflater.generateTree(bucket)
+        generateSources(roots, sourcesDirectory)
+    }
 
-        generateAndWrite(roots, sourcesDirectory)
-
-        // Generate objects of Values
+    private fun generateAssetsJson(bucket: Bucket, json: Json, assetsDirectory: File) {
+        assetsDirectory.mkdirs()
         val processed = bucket.translations.map {
             // clear params since it should not be used in resulting JSON
             it.copy(params = listOf())
         }
+        val clearedBucket = bucket.copy(translations = processed)
 
+        val filename = bucket.generateFilename()
+        val assetsFile = File(assetsDirectory, "$PREFIX_DEFAULT_FILE$filename")
+        if (assetsFile.exists()) {
+            assetsFile.delete()
+        }
+        assetsFile.createNewFile()
+
+        json.encodeToStream(clearedBucket, assetsFile.outputStream())
+        println("Assets file was copied")
     }
 
-    private fun generateAndWrite(
-        roots: MutableMap<String, StringModel>,
-        sourcesDirectory: DirectoryProperty
-    ) {
+    private fun generateBucketName(name: String, language: String, schemeVersion: Int): String {
+        // login_1_ua.json
+        return name + "_$schemeVersion" + "_$language.json"
+    }
+
+    private fun Bucket.generateFilename(): String {
+        // TODO handle name + language as nullable object
+        return generateBucketName(name!!, language!!, schemeVersion)
+    }
+
+    private fun generateSources(roots: MutableMap<String, StringModel>, sourcesDirectory: DirectoryProperty) {
         val packageName = "org.dynodict"
         val result = ObjectsGenerator(packageName).generate(roots)
         val folder = File(sourcesDirectory.get().asFile, packageName.replace(".", "/"))
@@ -97,11 +136,8 @@ open class DownloadStringsTask @javax.inject.Inject constructor(objects: ObjectF
         println("Job done")
     }
 
-
-    // LoginScreen.LoginButton
-    // StringContainer("LoginScreen", Leaf("LoginButton", DString)
-    //
-    // Split by . to get a list of
-    // Generate Strings.kt file based on the bucket info
-    // Serialize to json file and copy to /assets folder
+    companion object {
+        const val PREFIX_DEFAULT_FILE = "default_"
+        const val METADATA_NAME = "metadata.json"
+    }
 }

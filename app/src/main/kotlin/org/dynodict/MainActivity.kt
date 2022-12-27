@@ -42,6 +42,7 @@ class MainActivity : AppCompatActivity() {
         setContent {
             val stringsState by strings.collectAsState()
             val metadataState by metadata.collectAsState()
+            var loginButtonName by remember { mutableStateOf("") }
             val selectedLanguageState by selectedLanguage.collectAsState()
             Column(horizontalAlignment = CenterHorizontally) {
                 Button(onClick = { startGettingMetadata() }) {
@@ -69,7 +70,17 @@ class MainActivity : AppCompatActivity() {
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
+                Divider()
 
+                Button({
+                    loginButtonName = LoginScreen.ButtonName.get("Param1", 10)
+                }) {
+                    Text(text = "Get string: LoginScreen.ButtonName")
+                }
+
+                Text(text = loginButtonName)
+
+                Spacer(modifier = Modifier.height(16.dp))
                 Divider()
 
                 AnimatedVisibility(visible = stringsState.isNotEmpty()) {

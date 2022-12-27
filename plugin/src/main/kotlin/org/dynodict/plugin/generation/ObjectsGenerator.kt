@@ -74,8 +74,9 @@ class ObjectsGenerator(private val packageName: String) {
         appendLine("): String {")
         val paramsString = model.params.prepareListOfParameters()
         appendLineWithTab(
-            "return DynoDict.instance.get(Key(absolutePath, params = $paramsString))",
-            level + 2)
+            "return DynoDict.instance.get(Key(absolutePath), $paramsString)",
+            level + 2
+        )
         appendLineWithTab("}", tabs = level + 1)
         // ------------------------------------------------------------------------------
         appendLineWithTab("}", level)
@@ -86,9 +87,9 @@ class ObjectsGenerator(private val packageName: String) {
             val type = item.identifyType()
 
             val format = if (item.format == null) "" else ", format = \"${item.format}\""
-            "Parameter.${type}Parameter(${item.key}$format)"
+            "Parameter.${type}Parameter(${item.key}, key = \"${item.key}\"$format)"
         }
-        return "listOf($params)"
+        return params
     }
 
     private val types = mapOf(
@@ -96,7 +97,8 @@ class ObjectsGenerator(private val packageName: String) {
         "int" to "Int",
         "long" to "Long",
         "float" to "Float",
-        "double" to "Double")
+        "double" to "Double"
+    )
 
     private fun Parameter.generateCode(): String {
         val evaluatedType = identifyType()
