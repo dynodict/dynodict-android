@@ -26,7 +26,6 @@ class ObjectsGenerator(private val packageName: String) {
         // imports
         appendLine("import org.dynodict.DynoDict")
         appendLine("import org.dynodict.model.StringKey")
-        appendLine("import org.dynodict.model.Key")
         appendLine("import org.dynodict.model.Parameter")
         appendLine()
     }
@@ -74,7 +73,7 @@ class ObjectsGenerator(private val packageName: String) {
         appendLine("): String {")
         val paramsString = model.params.prepareListOfParameters()
         appendLineWithTab(
-            "return DynoDict.instance.get(Key(absolutePath), $paramsString)",
+            "return DynoDict.instance.get(this, $paramsString)",
             level + 2
         )
         appendLineWithTab("}", tabs = level + 1)

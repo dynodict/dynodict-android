@@ -1,4 +1,4 @@
-package org.dynodict.org.dynodict.formatter
+package org.dynodict.formatter
 
 interface DynoDictFormatter<T> {
     fun format(value: Any): String

@@ -3,14 +3,14 @@ package org.dynodict.provider
 import org.dynodict.DefaultStringNotFoundException
 import org.dynodict.FormatterNotFoundException
 import org.dynodict.StringNotFoundException
+import org.dynodict.formatter.*
 import org.dynodict.model.DLocale
 import org.dynodict.model.DString
-import org.dynodict.model.Key
 import org.dynodict.model.Parameter
+import org.dynodict.model.StringKey
 import org.dynodict.model.metadata.BucketMetadata
 import org.dynodict.model.settings.FallbackStrategy
 import org.dynodict.model.settings.Settings
-import org.dynodict.org.dynodict.formatter.*
 import org.dynodict.storage.BucketsStorage
 import org.dynodict.storage.MetadataStorage
 import org.dynodict.storage.generateBucketName
@@ -24,9 +24,9 @@ class StringProviderImpl(
     private val defaultMetadataStorage: MetadataStorage
 ) : StringProvider {
     private var locale: DLocale? = null
-    private val buckets: MutableMap<Key, DString> = ConcurrentHashMap()
+    private val buckets: MutableMap<StringKey, DString> = ConcurrentHashMap()
 
-    private val defaultBuckets: MutableMap<Key, DString> = ConcurrentHashMap()
+    private val defaultBuckets: MutableMap<StringKey, DString> = ConcurrentHashMap()
 
     private val formatters: MutableMap<String, DynoDictFormatter<*>?> = mutableMapOf(
         DEFAULT_INT_FORMATTER to IntFormatter(),
@@ -66,18 +66,18 @@ class StringProviderImpl(
 
     private suspend fun readBucketsFromStorage(
         bucketsMetadata: List<BucketMetadata>, locale: DLocale, storage: BucketsStorage
-    ): Map<Key, DString> {
-        val result = mutableMapOf<Key, DString>()
+    ): Map<StringKey, DString> {
+        val result = mutableMapOf<StringKey, DString>()
         bucketsMetadata.forEach {
             val filename = generateBucketName(it.name, locale.value, it.editionVersion)
             val map = storage.get(filename)?.translations.orEmpty()
-                .associateBy { value -> Key(value.key) }
+                .associateBy { value -> StringKey(value.key) }
             result.putAll(map)
         }
         return result
     }
 
-    override fun get(key: Key, vararg parameters: Parameter): String {
+    override fun get(key: StringKey, vararg parameters: Parameter): String {
         val dString = buckets[key]
         val string = dString?.value ?: handleNotFoundString(key)
 
@@ -118,7 +118,7 @@ class StringProviderImpl(
         }
     }
 
-    private fun handleNotFoundString(key: Key): String {
+    private fun handleNotFoundString(key: StringKey): String {
         when (settings.fallbackStrategy) {
             FallbackStrategy.ThrowException -> {
                 throw StringNotFoundException("String not found for key $key and locale: $locale")

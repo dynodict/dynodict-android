@@ -3,11 +3,11 @@ package org.dynodict
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
+import org.dynodict.formatter.DynoDictFormatter
 import org.dynodict.model.*
 import org.dynodict.model.metadata.BucketsMetadata
 import org.dynodict.model.settings.FallbackStrategy
 import org.dynodict.model.settings.Settings
-import org.dynodict.org.dynodict.formatter.DynoDictFormatter
 import org.dynodict.org.dynodict.model.settings.ParameterFallbackStrategy
 import org.dynodict.provider.StringProvider
 import org.dynodict.provider.StringProviderImpl
@@ -88,7 +88,7 @@ class StringProviderImplTest {
         val storage = BUCKET_JSON.createBucketStorage()
         withStringProvider(storage, settings = Settings.Strict) {
             try {
-                get(Key("UnknownKey"))
+                get(StringKey("UnknownKey"))
                 fail()
             } catch (ex: StringNotFoundException) {
                 // expected
@@ -101,7 +101,7 @@ class StringProviderImplTest {
         val storage = BUCKET_JSON.createBucketStorage()
         val settings = Settings(FallbackStrategy.EmptyString, ParameterFallbackStrategy.ReplaceByEmptyString)
         withStringProvider(storage, settings = settings) {
-            assertEquals("", get(Key("UnknownKey")))
+            assertEquals("", get(StringKey("UnknownKey")))
         }
 
     }
@@ -121,7 +121,7 @@ class StringProviderImplTest {
         }
         val settings = Settings(FallbackStrategy.ReturnDefault, ParameterFallbackStrategy.ReplaceByEmptyString)
         withStringProvider(storage, settings = settings, defaultBucketsStorage = defaultStorage) {
-            assertEquals("Default Value", get(Key("UnknownKey")))
+            assertEquals("Default Value", get(StringKey("UnknownKey")))
         }
     }
 
@@ -153,7 +153,7 @@ class StringProviderImplTest {
     }
 
     companion object {
-        val LOGIN_KEY = Key("LoginScreen.ButtonName")
+        val LOGIN_KEY = StringKey("LoginScreen.ButtonName")
 
         const val BUCKET_JSON = """
 {

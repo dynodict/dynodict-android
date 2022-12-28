@@ -1,7 +1,5 @@
 package org.dynodict.plugin
 
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.encodeToStream
@@ -22,8 +20,6 @@ import java.io.File
 open class DownloadStringsTask @javax.inject.Inject constructor(objects: ObjectFactory) :
     DefaultTask() {
 
-    private val coroutineScope = CoroutineScope(Job())
-
     @OutputDirectory
     val sourcesDirectory: DirectoryProperty = objects.directoryProperty()
 
@@ -39,7 +35,6 @@ open class DownloadStringsTask @javax.inject.Inject constructor(objects: ObjectF
             prettyPrint = true
         }
 
-        println("Download started")
         val remoteManager =
             RemoteManagerImpl(
                 RemoteSettings("https://raw.githubusercontent.com/mkovalyk/GraphicEditor/master/"),
@@ -50,30 +45,22 @@ open class DownloadStringsTask @javax.inject.Inject constructor(objects: ObjectF
             val metadata = remoteManager.getMetadata()
                 ?: throw IllegalStateException("There is an error during retrieving of the metadata")
 
-            println("metadata: $metadata")
             // copy metadata and set only default language
             val metadataWithDefault =
                 metadata.copy(languages = listOf(metadata.defaultLanguage))
 
             // 2. Download buckets
             val buckets = remoteManager.getStrings(metadataWithDefault)
-            // 3. Generate sources based on the default metadata
 
-            val assets = assetsDirectory.get().asFile
+            val assetsFolder = assetsDirectory.get().asFile
 
             buckets.forEach {
                 mapBucket(it)
-                // Generate objects of Values
-                generateAssetsJson(it, json, assets)
+                generateAssetsJson(it, json, assetsFolder)
             }
 
-            println("Got ${buckets.size} buckets")
-
-            writeMetadataToAssets(metadata, json, assets)
+            writeMetadataToAssets(metadata, json, assetsFolder)
         }
-
-        // 4. Copy default buckets to /assets folder
-        println("Downloading finished")
     }
 
     private fun writeMetadataToAssets(metadata: BucketsMetadata, json: Json, assetsDirectory: File) {
@@ -85,7 +72,6 @@ open class DownloadStringsTask @javax.inject.Inject constructor(objects: ObjectF
         file.createNewFile()
 
         json.encodeToStream(metadata, file.outputStream())
-        println("Metadata is copied")
     }
 
     private fun mapBucket(bucket: Bucket) {
@@ -109,7 +95,6 @@ open class DownloadStringsTask @javax.inject.Inject constructor(objects: ObjectF
         assetsFile.createNewFile()
 
         json.encodeToStream(clearedBucket, assetsFile.outputStream())
-        println("Assets file was copied")
     }
 
     private fun generateBucketName(name: String, language: String, schemeVersion: Int): String {
@@ -118,7 +103,6 @@ open class DownloadStringsTask @javax.inject.Inject constructor(objects: ObjectF
     }
 
     private fun Bucket.generateFilename(): String {
-        // TODO handle name + language as nullable object
         return generateBucketName(name!!, language!!, schemeVersion)
     }
 
@@ -133,7 +117,6 @@ open class DownloadStringsTask @javax.inject.Inject constructor(objects: ObjectF
             file.createNewFile()
         }
         file.writeText(result)
-        println("Job done")
     }
 
     companion object {

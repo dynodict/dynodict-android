@@ -25,7 +25,7 @@ import kotlinx.coroutines.launch
 import org.dynodict.manager.DynoDictManagerImpl
 import org.dynodict.model.DLocale
 import org.dynodict.model.DString
-import org.dynodict.model.Key
+import org.dynodict.model.StringKey
 import org.dynodict.model.metadata.BucketsMetadata
 
 class MainActivity : AppCompatActivity() {
@@ -98,7 +98,7 @@ class MainActivity : AppCompatActivity() {
         var value by remember { mutableStateOf("") }
         OutlinedTextField(value = key, { key = it }, label = { Text(text = "Key") })
         Button(onClick = {
-            value = dynoDict.get(Key(key))
+            value = dynoDict.get(StringKey(key))
         }, enabled = key.trim().isNotEmpty()) {
             Text(text = "Find Translation")
         }

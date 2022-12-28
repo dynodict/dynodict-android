@@ -3,15 +3,15 @@ package org.dynodict
 import android.content.Context
 import android.util.Log
 import kotlinx.serialization.json.Json
+import org.dynodict.formatter.DynoDictFormatter
 import org.dynodict.manager.DynoDictManager
 import org.dynodict.manager.DynoDictManagerImpl
 import org.dynodict.model.DLocale
-import org.dynodict.model.Key
 import org.dynodict.model.Parameter
+import org.dynodict.model.StringKey
 import org.dynodict.model.metadata.BucketMetadata
 import org.dynodict.model.metadata.BucketsMetadata
 import org.dynodict.model.settings.Settings
-import org.dynodict.org.dynodict.formatter.DynoDictFormatter
 import org.dynodict.provider.StringProvider
 import org.dynodict.provider.StringProviderImpl
 import org.dynodict.remote.RemoteManagerImpl
@@ -24,7 +24,7 @@ import org.dynodict.storage.defaults.DefaultMetadataFileStorage
 
 class DynoDict(
     private val provider: StringProvider,
-    // TODO make after testing
+    // TODO make private after testing
     val manager: DynoDictManager,
     private val settings: Settings,
 ) : StringProvider, DynoDictManager {
@@ -33,7 +33,7 @@ class DynoDict(
         provider.setLocale(locale)
     }
 
-    override fun get(key: Key, vararg parameters: Parameter): String {
+    override fun get(key: StringKey, vararg parameters: Parameter): String {
         return provider.get(key, *parameters)
     }
 
