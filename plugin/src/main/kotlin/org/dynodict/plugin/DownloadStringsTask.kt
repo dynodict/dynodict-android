@@ -11,35 +11,57 @@ import org.dynodict.plugin.remote.BucketsMetadata
 import org.dynodict.plugin.remote.RemoteManagerImpl
 import org.dynodict.plugin.remote.RemoteSettings
 import org.gradle.api.DefaultTask
-import org.gradle.api.file.DirectoryProperty
-import org.gradle.api.model.ObjectFactory
+import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
+import org.gradle.api.tasks.options.Option
 import java.io.File
 
-open class DownloadStringsTask @javax.inject.Inject constructor(objects: ObjectFactory) :
-    DefaultTask() {
+open class DownloadStringsTask : DefaultTask() {
+
+    @set:Option(
+        option = "sources",
+        description = "Directory to generate source files",
+    )
+    @get:Input
+    var sourcesDir = "src/main/kotlin"
+
+    @set:Option(
+        option = "assets",
+        description = "Directory to copy default assets files"
+    )
+    @get:Input
+    var assetsDir = "src/main/assets"
+
+    @set:Option(
+        option = "url",
+        description = "Url of the repository to download metadata and buckets"
+    )
+    @get:Input
+    var url = "https://raw.githubusercontent.com/mkovalyk/GraphicEditor/master/"
+
+    @set:Option(
+        option = "package",
+        description = "Package name for the app"
+    )
+    @get:Input
+    var packageName: String = ""
 
     @OutputDirectory
-    val sourcesDirectory: DirectoryProperty = objects.directoryProperty()
-
-    @OutputDirectory
-    val assetsDirectory: DirectoryProperty = objects.directoryProperty()
+    var projectDirectory: File  = File("")
 
     private val treeInflater = TreeInflater()
 
     @TaskAction
     fun download() {
+        println("Download task - $assetsDir. Sources -> $sourcesDir")
         val json = Json {
             ignoreUnknownKeys = true
             prettyPrint = true
         }
 
-        val remoteManager =
-            RemoteManagerImpl(
-                RemoteSettings("https://raw.githubusercontent.com/mkovalyk/GraphicEditor/master/"),
-                json
-            )
+        val remoteManager = RemoteManagerImpl(RemoteSettings(url), json)
+
         runBlocking {
             // 1. Download metadata
             val metadata = remoteManager.getMetadata()
@@ -52,7 +74,7 @@ open class DownloadStringsTask @javax.inject.Inject constructor(objects: ObjectF
             // 2. Download buckets
             val buckets = remoteManager.getStrings(metadataWithDefault)
 
-            val assetsFolder = assetsDirectory.get().asFile
+            val assetsFolder = File(projectDirectory, assetsDir)
 
             buckets.forEach {
                 mapBucket(it)
@@ -63,7 +85,11 @@ open class DownloadStringsTask @javax.inject.Inject constructor(objects: ObjectF
         }
     }
 
-    private fun writeMetadataToAssets(metadata: BucketsMetadata, json: Json, assetsDirectory: File) {
+    private fun writeMetadataToAssets(
+        metadata: BucketsMetadata,
+        json: Json,
+        assetsDirectory: File
+    ) {
         assetsDirectory.mkdirs()
         val file = File(assetsDirectory, "$PREFIX_DEFAULT_FILE$METADATA_NAME")
         if (file.exists()) {
@@ -76,7 +102,11 @@ open class DownloadStringsTask @javax.inject.Inject constructor(objects: ObjectF
 
     private fun mapBucket(bucket: Bucket) {
         val roots = treeInflater.generateTree(bucket)
-        generateSources(roots, sourcesDirectory)
+        var folder = File(projectDirectory, sourcesDir)
+        if (packageName.isNotEmpty()) {
+            folder = File(folder, packageName.replace(".", "/"))
+        }
+        generateSources(roots, folder)
     }
 
     private fun generateAssetsJson(bucket: Bucket, json: Json, assetsDirectory: File) {
@@ -106,10 +136,11 @@ open class DownloadStringsTask @javax.inject.Inject constructor(objects: ObjectF
         return generateBucketName(name!!, language!!, schemeVersion)
     }
 
-    private fun generateSources(roots: MutableMap<String, StringModel>, sourcesDirectory: DirectoryProperty) {
-        val packageName = "org.dynodict"
+    private fun generateSources(
+        roots: MutableMap<String, StringModel>,
+        folder: File
+    ) {
         val result = ObjectsGenerator(packageName).generate(roots)
-        val folder = File(sourcesDirectory.get().asFile, packageName.replace(".", "/"))
         folder.mkdirs()
 
         val file = File(folder, "Strings.kt")

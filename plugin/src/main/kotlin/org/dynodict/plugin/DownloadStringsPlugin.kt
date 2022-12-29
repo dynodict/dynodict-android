@@ -10,9 +10,7 @@ class DownloadStringsPlugin : Plugin<Project> {
         target.logger.error("Applying plugin..")
 
         target.tasks.register<DownloadStringsTask>("downloadStrings") {
-            val projectDirectory = target.layout.projectDirectory
-            sourcesDirectory.set(projectDirectory.dir("src/main/kotlin"))
-            assetsDirectory.set(projectDirectory.dir("src/main/assets"))
+            projectDirectory = target.layout.projectDirectory.asFile
         }
     }
 }

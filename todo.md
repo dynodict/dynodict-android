@@ -4,7 +4,7 @@
 - [x] Don't validate url parameter
 - [x] Initialize default Dynodict with parameters and use Content provider
 - [x] rename java to kotlin folders
-- [ ] Add property to set source path
+- [x] Add property to set source path
 - [x] Add package
 - [x] Add imports
 - [x] Inflate parameters
@@ -12,8 +12,10 @@
 - [x] Attach folder for package
 - [ ] Generate list of required Formatters
 - [ ] Add enum FormatterNotFoundStrategy to take care the scenario when format can't be found
-- [ ] Get rid of Key class since it is redundant
+- [x] Get rid of Key class since it is redundant
 - [x] Add tests for StringProviderImpl
+- [ ] Consider creation of the new module for strings generation
+- [ ] Deploy to real maven repository
 
 ```json
 {
