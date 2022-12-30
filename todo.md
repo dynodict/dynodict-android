@@ -35,4 +35,8 @@ Plugins functionality:
 2. It is either yaml or json file
 3. Convert it to Structured list of data
 4. Store default json values in assets directory
-5. Generate objects 
+5. Generate objects
+
+Format contract:
+
+1. camelCase

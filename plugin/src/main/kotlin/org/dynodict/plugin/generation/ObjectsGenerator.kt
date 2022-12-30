@@ -113,15 +113,7 @@ class ObjectsGenerator(private val packageName: String) {
         return evaluatedType
     }
 
-    private fun StringBuilder.appendLineWithTab(value: String, tabs: Int) {
-        repeat(tabs) { append(TAB) }
-        appendLine(value)
-    }
 
-    private fun StringBuilder.appendWithTab(value: String, tabs: Int) {
-        repeat(tabs) { append(TAB) }
-        append(value)
-    }
 
     companion object {
         private const val TAB = "    "
