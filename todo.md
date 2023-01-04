@@ -10,7 +10,7 @@
 - [x] Inflate parameters
 - [x] Generate JSON for assets folder
 - [x] Attach folder for package
-- [ ] Generate list of required Formatters
+- [x] Generate list of required Formatters
 - [ ] Add enum FormatterNotFoundStrategy to take care the scenario when format can't be found
 - [x] Get rid of Key class since it is redundant
 - [x] Add tests for StringProviderImpl

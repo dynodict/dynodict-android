@@ -3,6 +3,7 @@ package org.dynodict.plugin
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.encodeToStream
+import org.dynodict.plugin.generation.ExtensionFunctionGenerator
 import org.dynodict.plugin.generation.ObjectsGenerator
 import org.dynodict.plugin.generation.StringModel
 import org.dynodict.plugin.generation.TreeInflater
@@ -27,28 +28,25 @@ open class DownloadStringsTask : DefaultTask() {
     var sourcesDir = "src/main/kotlin"
 
     @set:Option(
-        option = "assets",
-        description = "Directory to copy default assets files"
+        option = "assets", description = "Directory to copy default assets files"
     )
     @get:Input
     var assetsDir = "src/main/assets"
 
     @set:Option(
-        option = "url",
-        description = "Url of the repository to download metadata and buckets"
+        option = "url", description = "Url of the repository to download metadata and buckets"
     )
     @get:Input
     var url = "https://raw.githubusercontent.com/mkovalyk/GraphicEditor/master/"
 
     @set:Option(
-        option = "package",
-        description = "Package name for the app"
+        option = "package", description = "Package name for the app"
     )
     @get:Input
     var packageName: String = ""
 
     @OutputDirectory
-    var projectDirectory: File  = File("")
+    var projectDirectory: File = File("")
 
     private val treeInflater = TreeInflater()
 
@@ -68,16 +66,16 @@ open class DownloadStringsTask : DefaultTask() {
                 ?: throw IllegalStateException("There is an error during retrieving of the metadata")
 
             // copy metadata and set only default language
-            val metadataWithDefault =
-                metadata.copy(languages = listOf(metadata.defaultLanguage))
+            val metadataWithDefault = metadata.copy(languages = listOf(metadata.defaultLanguage))
 
             // 2. Download buckets
             val buckets = remoteManager.getStrings(metadataWithDefault)
 
             val assetsFolder = File(projectDirectory, assetsDir)
 
+            val customFormats = mutableSetOf<String>()
             buckets.forEach {
-                mapBucket(it)
+                mapBucket(it, customFormats)
                 generateAssetsJson(it, json, assetsFolder)
             }
 
@@ -86,9 +84,7 @@ open class DownloadStringsTask : DefaultTask() {
     }
 
     private fun writeMetadataToAssets(
-        metadata: BucketsMetadata,
-        json: Json,
-        assetsDirectory: File
+        metadata: BucketsMetadata, json: Json, assetsDirectory: File
     ) {
         assetsDirectory.mkdirs()
         val file = File(assetsDirectory, "$PREFIX_DEFAULT_FILE$METADATA_NAME")
@@ -100,13 +96,13 @@ open class DownloadStringsTask : DefaultTask() {
         json.encodeToStream(metadata, file.outputStream())
     }
 
-    private fun mapBucket(bucket: Bucket) {
+    private fun mapBucket(bucket: Bucket, customFormats: MutableSet<String>) {
         val roots = treeInflater.generateTree(bucket)
         var folder = File(projectDirectory, sourcesDir)
         if (packageName.isNotEmpty()) {
             folder = File(folder, packageName.replace(".", "/"))
         }
-        generateSources(roots, folder)
+        generateSources(roots, folder, customFormats)
     }
 
     private fun generateAssetsJson(bucket: Bucket, json: Json, assetsDirectory: File) {
@@ -137,21 +133,32 @@ open class DownloadStringsTask : DefaultTask() {
     }
 
     private fun generateSources(
-        roots: MutableMap<String, StringModel>,
-        folder: File
+        roots: MutableMap<String, StringModel>, folder: File, customFormats: MutableSet<String>
     ) {
-        val result = ObjectsGenerator(packageName).generate(roots)
+        val result = ObjectsGenerator(packageName).generate(roots, customFormats)
         folder.mkdirs()
 
-        val file = File(folder, "Strings.kt")
+        val file = File(folder, STRINGS_NAME)
         if (!file.exists()) {
             file.createNewFile()
         }
         file.writeText(result)
+
+        if (customFormats.isNotEmpty()) {
+            val extensionFile = File(folder, DYNODICT_EXT_NAME)
+
+            if (!extensionFile.exists()) {
+                extensionFile.createNewFile()
+            }
+            val extensionText = ExtensionFunctionGenerator(packageName).generate(customFormats.toList())
+            extensionFile.writeText(extensionText)
+        }
     }
 
     companion object {
         const val PREFIX_DEFAULT_FILE = "default_"
         const val METADATA_NAME = "metadata.json"
+        const val DYNODICT_EXT_NAME = "DynoDictExt.kt"
+        const val STRINGS_NAME = "Strings.kt"
     }
 }

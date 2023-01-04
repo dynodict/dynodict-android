@@ -7,13 +7,13 @@ import java.util.*
 
 class ObjectsGenerator(private val packageName: String) {
 
-    fun generate(roots: Map<String, StringModel>): String {
+    fun generate(roots: Map<String, StringModel>, customFormats: MutableSet<String>): String {
         val builder = StringBuilder()
 
         builder.generateHeader()
 
         roots.forEach {
-            builder.generateModel(it.key, it.value, parent = null, level = 0)
+            builder.generateModel(it.key, it.value, parent = null, level = 0, customFormats)
         }
         return builder.toString()
     }
@@ -34,24 +34,29 @@ class ObjectsGenerator(private val packageName: String) {
         key: String,
         model: StringModel,
         parent: String?,
-        level: Int
+        level: Int,
+        customFormats: MutableSet<String>
     ) {
 
         if (model.children.isNotEmpty()) {
-            generateContainer(parent, key, model, level)
+            generateContainer(parent, key, model, level, customFormats)
         }
         val value = model.value
         if (value != null) {
-            generateLeaf(parent, key, value, level)
+            generateLeaf(parent, key, value, level, customFormats)
         }
     }
 
     private fun StringBuilder.generateContainer(
-        parent: String?, key: String, model: StringModel, level: Int
+        parent: String?,
+        key: String,
+        model: StringModel,
+        level: Int,
+        customFormat: MutableSet<String>
     ) {
         val parentClass = if (parent == null) "" else ", $parent"
         appendLineWithTab("object $key : StringKey(\"$key\"$parentClass) {", level)
-        model.children.forEach { generateModel(it.key, it.value, key, level + 1) }
+        model.children.forEach { generateModel(it.key, it.value, key, level + 1, customFormat) }
         appendLineWithTab("}", level)
     }
 
@@ -59,7 +64,8 @@ class ObjectsGenerator(private val packageName: String) {
         parent: String?,
         key: String,
         model: DString,
-        level: Int
+        level: Int,
+        customFormats: MutableSet<String>
     ) {
         val parentClass = if (parent == null) "" else ", $parent"
         appendLineWithTab("object $key : StringKey(\"$key\"$parentClass) {", level)
@@ -69,6 +75,9 @@ class ObjectsGenerator(private val packageName: String) {
             val suffix =
                 if (index < model.params.lastIndex) ", " else ""
             append(parameter.generateCode() + suffix)
+            if (!parameter.format.isNullOrBlank()) {
+                customFormats.add(parameter.format)
+            }
         }
         appendLine("): String {")
         val paramsString = model.params.prepareListOfParameters()
@@ -112,7 +121,6 @@ class ObjectsGenerator(private val packageName: String) {
         }
         return evaluatedType
     }
-
 
 
     companion object {

@@ -6,11 +6,11 @@ plugins {
 }
 
 group = "org.dynodict.plugin"
-version = "0.4.5"
+version = "0.4.6"
 
 gradlePlugin {
     plugins {
-        register("download-strings") {
+        register("downloadStrings") {
             id = "org.dynodict.plugin"
             implementationClass = "org.dynodict.plugin.DownloadStringsPlugin"
         }

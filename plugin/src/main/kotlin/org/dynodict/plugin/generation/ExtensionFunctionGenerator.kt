@@ -8,7 +8,8 @@ package org.dynodict.plugin.generation
  * If the amount is bigger - function with map will be generated to prevent inconvenient function with too many parameters
  */
 class ExtensionFunctionGenerator(
-    private val packageName: String, private val paramsThreshold: Int = DEFAULT_PARAMS_THRESHOLD
+    private val packageName: String,
+    private val paramsThreshold: Int = DEFAULT_PARAMS_THRESHOLD
 ) {
     fun generate(formats: List<String>): String {
 
@@ -25,7 +26,7 @@ class ExtensionFunctionGenerator(
             appendLine("import org.dynodict.DynoDict")
             appendLine()
 
-            append("fun DynoDict.registerFormatters(")
+            append("fun DynoDict.Companion.registerFormatters(")
             if (formats.size <= paramsThreshold) {
                 generateNamedFormatters(formats)
             } else {
@@ -47,7 +48,6 @@ class ExtensionFunctionGenerator(
             appendLine(if (index == formats.lastIndex) "\n) {" else ",")
         }
         appendLineWithTab("with(DynoDict.instance) {", tabs = 1)
-        appendLine()
         formatsNormalized.forEach {
             appendLineWithTab("registerFormatter(\"${it.key}\", ${it.value}Formatter)", tabs = 2)
         }
