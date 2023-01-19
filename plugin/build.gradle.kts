@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "org.dynodict.plugin"
-version = "0.4.6"
+version = "0.5.0"
 
 gradlePlugin {
     plugins {

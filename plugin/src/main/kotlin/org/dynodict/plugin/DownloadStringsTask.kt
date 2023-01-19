@@ -3,6 +3,7 @@ package org.dynodict.plugin
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.encodeToStream
+import org.dynodict.plugin.evaluator.ParametersEvaluator
 import org.dynodict.plugin.generation.ExtensionFunctionGenerator
 import org.dynodict.plugin.generation.ObjectsGenerator
 import org.dynodict.plugin.generation.StringModel
@@ -25,13 +26,13 @@ open class DownloadStringsTask : DefaultTask() {
         description = "Directory to generate source files",
     )
     @get:Input
-    var sourcesDir = "src/main/kotlin"
+    var sourcesDir = ""
 
     @set:Option(
         option = "assets", description = "Directory to copy default assets files"
     )
     @get:Input
-    var assetsDir = "src/main/assets"
+    var assetsDir = ""
 
     @set:Option(
         option = "url", description = "Url of the repository to download metadata and buckets"
@@ -49,15 +50,21 @@ open class DownloadStringsTask : DefaultTask() {
     var projectDirectory: File = File("")
 
     private val treeInflater = TreeInflater()
+    private val paramEvaluator = ParametersEvaluator()
 
     @TaskAction
     fun download() {
-        println("Download task - $assetsDir. Sources -> $sourcesDir")
         val json = Json {
             ignoreUnknownKeys = true
             prettyPrint = true
         }
+        val outputDirectories = paramEvaluator.evaluateAndCreateIfNeeded(
+            projectDirectory,
+            assetsDir,
+            sourcesDir,
+            packageName)
 
+        println("Download task. Folders - $outputDirectories")
         val remoteManager = RemoteManagerImpl(RemoteSettings(url), json)
 
         runBlocking {
@@ -71,15 +78,13 @@ open class DownloadStringsTask : DefaultTask() {
             // 2. Download buckets
             val buckets = remoteManager.getStrings(metadataWithDefault)
 
-            val assetsFolder = File(projectDirectory, assetsDir)
-
             val customFormats = mutableSetOf<String>()
             buckets.forEach {
-                mapBucket(it, customFormats)
-                generateAssetsJson(it, json, assetsFolder)
+                mapBucket(it, customFormats, outputDirectories.second, outputDirectories.third)
+                generateAssetsJson(it, json, outputDirectories.first)
             }
 
-            writeMetadataToAssets(metadata, json, assetsFolder)
+            writeMetadataToAssets(metadata, json, outputDirectories.first)
         }
     }
 
@@ -96,17 +101,17 @@ open class DownloadStringsTask : DefaultTask() {
         json.encodeToStream(metadata, file.outputStream())
     }
 
-    private fun mapBucket(bucket: Bucket, customFormats: MutableSet<String>) {
+    private fun mapBucket(
+        bucket: Bucket,
+        customFormats: MutableSet<String>,
+        sourceDir: File,
+        packageName: String
+    ) {
         val roots = treeInflater.generateTree(bucket)
-        var folder = File(projectDirectory, sourcesDir)
-        if (packageName.isNotEmpty()) {
-            folder = File(folder, packageName.replace(".", "/"))
-        }
-        generateSources(roots, folder, customFormats)
+        generateSources(roots, sourceDir, customFormats, packageName)
     }
 
     private fun generateAssetsJson(bucket: Bucket, json: Json, assetsDirectory: File) {
-        assetsDirectory.mkdirs()
         val processed = bucket.translations.map {
             // clear params since it should not be used in resulting JSON
             it.copy(params = listOf())
@@ -133,10 +138,12 @@ open class DownloadStringsTask : DefaultTask() {
     }
 
     private fun generateSources(
-        roots: MutableMap<String, StringModel>, folder: File, customFormats: MutableSet<String>
+        roots: MutableMap<String, StringModel>,
+        folder: File,
+        customFormats: MutableSet<String>,
+        packageName: String,
     ) {
         val result = ObjectsGenerator(packageName).generate(roots, customFormats)
-        folder.mkdirs()
 
         val file = File(folder, STRINGS_NAME)
         if (!file.exists()) {
@@ -150,7 +157,8 @@ open class DownloadStringsTask : DefaultTask() {
             if (!extensionFile.exists()) {
                 extensionFile.createNewFile()
             }
-            val extensionText = ExtensionFunctionGenerator(packageName).generate(customFormats.toList())
+            val extensionText =
+                ExtensionFunctionGenerator(packageName).generate(customFormats.toList())
             extensionFile.writeText(extensionText)
         }
     }

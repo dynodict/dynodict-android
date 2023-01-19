@@ -16,12 +16,15 @@
 - [x] Add tests for StringProviderImpl
 - [ ] Consider creation of the new module for strings generation
 - [ ] Deploy to real maven repository
+- [x] ~ Automatic upgrade of the library ~
+- [ ] Parameters verification
+- [ ] Try to find the package name automatically
 
 ```json
 {
-    "format": "startTime",
-    "type": "Int",
-    "key": "param1"
+  "format": "startTime",
+  "type": "Int",
+  "key": "param1"
 }
 ```
 
