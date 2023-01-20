@@ -14,11 +14,13 @@
 - [ ] Add enum FormatterNotFoundStrategy to take care the scenario when format can't be found
 - [x] Get rid of Key class since it is redundant
 - [x] Add tests for StringProviderImpl
-- [ ] Consider creation of the new module for strings generation
+- [x] ~~Consider creation of the new module for strings generation~~ Too much things to be done like
+
 - [ ] Deploy to real maven repository
-- [x] ~ Automatic upgrade of the library ~
+- [x] ~~Automatic upgrade of the library~~ No need since no module is generated. At least in first
+  version
 - [ ] Parameters verification
-- [ ] Try to find the package name automatically
+- [x] Try to find the package name automatically
 
 ```json
 {
