@@ -2,8 +2,17 @@ package org.dynodict.plugin.evaluator
 
 import java.io.File
 
+/**
+ * This class evaluates default folders to place generated data if no input parameters are passed
+ *
+ */
 class ParametersEvaluator {
 
+    /**
+     * First - assets folder
+     * Second - sources folder
+     * Third - package name
+     */
     fun evaluateAndCreateIfNeeded(
         projectDirectory: File,
         assetsFolder: String,

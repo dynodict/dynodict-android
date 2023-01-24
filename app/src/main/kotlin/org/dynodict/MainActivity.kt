@@ -22,11 +22,13 @@ import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
+import org.dynodict.android.initWith
 import org.dynodict.manager.DynoDictManagerImpl
 import org.dynodict.model.DLocale
 import org.dynodict.model.DString
 import org.dynodict.model.StringKey
 import org.dynodict.model.metadata.BucketsMetadata
+import org.dynodict.model.settings.Settings
 
 class MainActivity : AppCompatActivity() {
 
@@ -158,7 +160,11 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun createDynoDict(): DynoDict {
-        return DynoDict.initWith(this, "https://raw.githubusercontent.com/mkovalyk/GraphicEditor/master/")
+        return DynoDict.initWith(
+            this,
+            endpoint = "https://raw.githubusercontent.com/mkovalyk/GraphicEditor/master/",
+            settings = Settings.Default
+        )
     }
 
 
@@ -166,7 +172,7 @@ class MainActivity : AppCompatActivity() {
         lifecycleScope.launch(Dispatchers.IO) {
             dynoDict.updateStrings()
             val storageManager = (dynoDict.manager as DynoDictManagerImpl).storageManager
-            val meta = storageManager.getMetadata()
+            val meta = dynoDict.getMetadata()
             metadata.value = meta
             val selectedLang = selectedLanguage.value.ifEmpty {
                 meta?.defaultLanguage.orEmpty()

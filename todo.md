@@ -11,16 +11,19 @@
 - [x] Generate JSON for assets folder
 - [x] Attach folder for package
 - [x] Generate list of required Formatters
-- [ ] Add enum FormatterNotFoundStrategy to take care the scenario when format can't be found
 - [x] Get rid of Key class since it is redundant
 - [x] Add tests for StringProviderImpl
 - [x] ~~Consider creation of the new module for strings generation~~ Too much things to be done like
-
-- [ ] Deploy to real maven repository
 - [x] ~~Automatic upgrade of the library~~ No need since no module is generated. At least in first
   version
-- [ ] Parameters verification
 - [x] Try to find the package name automatically
+- [ ] Create abstraction over kotlinx.serialization - Migrate to StringFormat instead of
+- [ ] Clean up
+- [ ] Migrate to Initializer instead of ContentProvider
+- [ ] Add tests
+- [ ] Parameters verification
+- [ ] Add enum FormatterNotFoundStrategy to take care the scenario when format can't be found
+- [ ] Deploy to real maven repository
 
 ```json
 {
