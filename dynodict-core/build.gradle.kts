@@ -10,25 +10,25 @@ publishing {
         create<MavenPublication>("maven") {
             group = "org.dynodict"
             artifactId = "library-core"
-            version = "0.3"
+            version = Versions.dynodictLibrary
             from(components["java"])
         }
     }
 }
+
+java {
+    sourceCompatibility = Config.sourceCompat
+    targetCompatibility = Config.targetCompat
+}
+
 dependencies {
 
-    // okhttp
-    implementation("com.squareup.okhttp3:okhttp:4.10.0")
+    implementation(Deps.okhttp)
+    implementation(Deps.serializationCore)
+    implementation(Deps.coroutines)
 
-    // serialization
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.4.1")
 
-    // coroutines
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
-
-    testImplementation("junit:junit:4.13.2")
-    testImplementation("org.mockito:mockito-core:4.8.0")
-    testImplementation("org.mockito.kotlin:mockito-kotlin:4.0.0")
-    testImplementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.1")
-
+    testImplementation(TestDeps.junit)
+    testImplementation(TestDeps.mockitoKotlin)
+    testImplementation(Deps.serializationJson)
 }

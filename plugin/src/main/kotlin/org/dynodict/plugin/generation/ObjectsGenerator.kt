@@ -1,8 +1,8 @@
 package org.dynodict.plugin.generation
 
+import org.dynodict.model.DString
+import org.dynodict.model.RemoteParameter
 import org.dynodict.plugin.exception.IllegalTypeException
-import org.dynodict.plugin.remote.DString
-import org.dynodict.plugin.remote.Parameter
 import java.util.*
 
 class ObjectsGenerator(private val packageName: String) {
@@ -76,7 +76,7 @@ class ObjectsGenerator(private val packageName: String) {
                 if (index < model.params.lastIndex) ", " else ""
             append(parameter.generateCode() + suffix)
             if (!parameter.format.isNullOrBlank()) {
-                customFormats.add(parameter.format)
+                customFormats.add(parameter.format!!)
             }
         }
         appendLine("): String {")
@@ -90,7 +90,7 @@ class ObjectsGenerator(private val packageName: String) {
         appendLineWithTab("}", level)
     }
 
-    private fun List<Parameter>.prepareListOfParameters(): String {
+    private fun List<RemoteParameter>.prepareListOfParameters(): String {
         val params = joinToString(",") { item ->
             val type = item.identifyType()
 
@@ -108,12 +108,12 @@ class ObjectsGenerator(private val packageName: String) {
         "double" to "Double"
     )
 
-    private fun Parameter.generateCode(): String {
+    private fun RemoteParameter.generateCode(): String {
         val evaluatedType = identifyType()
         return "$key: $evaluatedType"
     }
 
-    private fun Parameter.identifyType(): String {
+    private fun RemoteParameter.identifyType(): String {
         val evaluatedType = types[type.toLowerCase(Locale.getDefault())]
 
         if (evaluatedType == null) {

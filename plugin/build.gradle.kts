@@ -20,28 +20,26 @@ publishing {
         create<MavenPublication>("maven") {
             group = "org.dynodict"
             artifactId = "plugin"
-            version = "0.5.1"
+            version = Versions.dynodictPlugin
             from(components["kotlin"])
         }
-    }
-    repositories {
-        mavenLocal()
     }
 }
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_11
-    targetCompatibility = JavaVersion.VERSION_11
+    sourceCompatibility = Config.sourceCompat
+    targetCompatibility = Config.targetCompat
 }
 
 dependencies {
-    implementation("org.dynodict:library-core:0.3")
-    implementation("com.squareup.okhttp3:okhttp:4.10.0")
+    implementation(Deps.dynodictCore)
+    implementation(Deps.okhttp)
 
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.1")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
+    implementation(Deps.serializationJson)
+    implementation(Deps.coroutines)
 
-    testImplementation("junit:junit:4.13.2")
-    testImplementation("org.mockito:mockito-core:4.8.0")
-    testImplementation("org.mockito.kotlin:mockito-kotlin:4.8.0")
+    testImplementation(TestDeps.junit)
+    testImplementation(TestDeps.mockitoKotlin)
 }
+
+tasks.getByName("publishToMavenLocal").dependsOn("clean", "assemble")

@@ -1,6 +1,6 @@
 package org.dynodict.plugin.generation
 
-import org.dynodict.plugin.remote.Bucket
+import org.dynodict.model.Bucket
 
 class TreeInflater {
     fun generateTree(bucket: Bucket): MutableMap<String, StringModel> {

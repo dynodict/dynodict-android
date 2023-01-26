@@ -17,7 +17,7 @@
 - [x] ~~Automatic upgrade of the library~~ No need since no module is generated. At least in first
   version
 - [x] Try to find the package name automatically
-- [ ] Create abstraction over kotlinx.serialization - Migrate to StringFormat instead of
+- [x] Create abstraction over kotlinx.serialization - Migrate to StringFormat instead of
 - [ ] Clean up
 - [ ] Migrate to Initializer instead of ContentProvider
 - [ ] Add tests
