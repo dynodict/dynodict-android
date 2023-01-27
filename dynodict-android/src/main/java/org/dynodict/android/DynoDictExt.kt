@@ -16,7 +16,6 @@ fun DynoDict.Companion.initWith(
     val converter = Json {
         // Ignore unknown keys
     }
-    val defaultDataProvider = AssetsDefaultDataProvider(context.assets)
     return initWith(context, endpoint, settings, converter)
 }
 

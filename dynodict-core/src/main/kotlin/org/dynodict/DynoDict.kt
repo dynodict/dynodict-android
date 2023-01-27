@@ -108,13 +108,15 @@ class DynoDict(
         private fun createStringProvider(
             filesDir: File,
             defaultDataProvider: DefaultDataProvider,
-            json: StringFormat,
+            serializer: StringFormat,
             bucketsStorage: FileBucketsStorage,
             metadataStorage: FileMetadataStorage,
             settings: Settings
         ): StringProviderImpl {
-            val defaultBucketStorage = DefaultBucketsFileStorage(filesDir, json, defaultDataProvider)
-            val defaultMetadataStorage = DefaultMetadataFileStorage(filesDir, json, defaultDataProvider)
+            val defaultBucketStorage =
+                DefaultBucketsFileStorage(filesDir, serializer, defaultDataProvider)
+            val defaultMetadataStorage =
+                DefaultMetadataFileStorage(filesDir, serializer, defaultDataProvider)
 
             return StringProviderImpl(
                 bucketsStorage,

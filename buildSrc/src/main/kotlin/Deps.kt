@@ -4,8 +4,8 @@ import org.gradle.api.JavaVersion
 
 object Versions {
     // dynodict
-    const val dynodictPlugin = "0.5.1"
-    const val dynodictLibrary = "0.3"
+    const val dynodictPlugin = "0.5.2"
+    const val dynodictLibrary = "0.4.1"
 
     // network
     const val okhttp = "4.10.0"

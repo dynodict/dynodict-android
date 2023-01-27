@@ -18,6 +18,8 @@
   version
 - [x] Try to find the package name automatically
 - [x] Create abstraction over kotlinx.serialization - Migrate to StringFormat instead of
+- [ ] Create
+- [ ] Create task to deploy using one command
 - [ ] Clean up
 - [ ] Migrate to Initializer instead of ContentProvider
 - [ ] Add tests
