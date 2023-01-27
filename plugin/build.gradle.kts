@@ -8,12 +8,14 @@ plugins {
 gradlePlugin {
     plugins {
         register("downloadStringsPlugin") {
+            group = "org.dynodict"
             id = "org.dynodict.plugin"
             implementationClass = "org.dynodict.plugin.DownloadStringsPlugin"
         }
     }
 }
 
+version = Versions.dynodictPlugin
 
 publishing {
     publications {

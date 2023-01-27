@@ -1,7 +1,7 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
-//    id("plugin")
+    id("org.dynodict.plugin")
 }
 
 android {
@@ -21,7 +21,8 @@ android {
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro")
+                "proguard-rules.pro"
+            )
         }
     }
     compileOptions {
@@ -62,31 +63,6 @@ dependencies {
     testImplementation(TestDeps.junit)
 }
 
-//apply {
-//    from("../deploy.gradle.kts")
-//}
-
-tasks.create("deployCore") {
-    dependsOn(":dynodict-core:assemble", ":dynodict-core:publishToMavenLocal")
-    doLast {
-        println("dynodict-core -> Deployed")
-    }
-}
-tasks.create("deployAndroid") {
-    dependsOn(":dynodict-android:assemble", ":dynodict-android:publishToMavenLocal")
-    doLast {
-        println("dynodict-android -> Deployed")
-    }
-}
-tasks.create("deployPlugin") {
-    dependsOn(":plugin:assemble", ":plugin:publishToMavenLocal")
-    doLast {
-        println("plugin -> Deployed")
-    }
-}
-
-// Task to deploy all libraries
-tasks.create("deployAllLibraries") {
-    mustRunAfter("deployCore")
-    dependsOn("clean", "deployPlugin", "deployAndroid")
+apply {
+    from("../deploy.gradle.kts")
 }
