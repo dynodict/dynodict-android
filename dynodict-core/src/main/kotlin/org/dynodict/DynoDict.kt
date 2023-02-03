@@ -14,6 +14,7 @@ import org.dynodict.model.metadata.BucketsMetadata
 import org.dynodict.model.settings.Settings
 import org.dynodict.provider.StringProvider
 import org.dynodict.provider.StringProviderImpl
+import org.dynodict.provider.validator.PlaceholderValidatorImpl
 import org.dynodict.remote.RemoteManagerImpl
 import org.dynodict.remote.RemoteSettings
 import org.dynodict.storage.FileBucketsStorage
@@ -94,7 +95,8 @@ class DynoDict(
                     converter,
                     bucketsStorage,
                     metadataStorage,
-                    settings
+                    settings,
+                    callback
                 )
 
             return DynoDict(
@@ -111,19 +113,23 @@ class DynoDict(
             serializer: StringFormat,
             bucketsStorage: FileBucketsStorage,
             metadataStorage: FileMetadataStorage,
-            settings: Settings
+            settings: Settings,
+            dynodictCallback: DynodictCallback
         ): StringProviderImpl {
             val defaultBucketStorage =
                 DefaultBucketsFileStorage(filesDir, serializer, defaultDataProvider)
             val defaultMetadataStorage =
                 DefaultMetadataFileStorage(filesDir, serializer, defaultDataProvider)
 
+            val placeholderValidator = PlaceholderValidatorImpl(settings.redundantPlaceholderPolicy)
             return StringProviderImpl(
                 bucketsStorage,
                 metadataStorage,
                 settings,
                 defaultBucketStorage,
-                defaultMetadataStorage
+                defaultMetadataStorage,
+                placeholderValidator,
+                dynodictCallback
             )
         }
     }

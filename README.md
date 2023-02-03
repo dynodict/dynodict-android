@@ -42,7 +42,7 @@ object LoginScreen : StringKey("LoginScreen") {
 }
 ```
 
-which can be used further in code:
+and can be used further in code:
 
 ```
  val loginButtonName = LoginScreen.ButtonName.get("Param1", time)
@@ -62,12 +62,24 @@ which can be used further in code:
    ```
 
 This task will download metadata from *metadata_url* and will generate Kotlin file Strings.kt
-with Kotlin placeholders as well as json/yaml buckets
+with Kotlin placeholders as well as json/yaml buckets.
 
 3. Enjoy!
 
 ### Task customization
 
-For :downloadStrings there are few mandatory parameters which need to be passed:
+For :downloadStrings there is only one mandatory parameters which need to be passed:
 
-*--package* - 
+_--url_ - Url where to get the data from.
+
+There are some _optional_ parameters which can be used:
+
+_--package_ - package which should be used to place Kotlin files. It is also
+used to set package at the top of the file. Default is evaluated based on the first non-single
+folder
+
+_--source_ - location where generated Kotlin file should be placed to. Default src/main/java
+
+_--assets_ - location of the assets folder where default .json files are placed to
+
+

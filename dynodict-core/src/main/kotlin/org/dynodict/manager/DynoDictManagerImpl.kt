@@ -1,8 +1,9 @@
 package org.dynodict.manager
 
 import org.dynodict.DynodictCallback
-import org.dynodict.ExceptionResolution.Handled
-import org.dynodict.ExceptionResolution.NotHandled
+import org.dynodict.EndpointNotSetException
+import org.dynodict.MetadataNotFoundException
+import org.dynodict.errorOccurred
 import org.dynodict.model.metadata.BucketMetadata
 import org.dynodict.model.metadata.BucketsMetadata
 import org.dynodict.remote.RemoteManager
@@ -26,21 +27,14 @@ class DynoDictManagerImpl(
 
     override suspend fun updateMetadata(): BucketsMetadata? {
         validateRemoteSettings()
+
         val metadata = remoteManager.getMetadata()
         if (metadata == null) {
-            val exception = IllegalStateException("Error during getting the metadata")
-            when (dynodictCallback.onErrorOccurred(exception)) {
-                Handled -> {
-                    // just return the function since this scenario is already handled
-                    return null
-                }
-                NotHandled -> {
-                    throw exception
-                }
-            }
+            val exception = MetadataNotFoundException("Error during getting the metadata")
+            dynodictCallback.errorOccurred(exception, onHandled = { return null })
+        } else {
+            storageManager.storeMetadata(metadata)
         }
-
-        storageManager.storeMetadata(metadata)
         return metadata
     }
 
@@ -61,7 +55,7 @@ class DynoDictManagerImpl(
 
     private fun validateRemoteSettings() {
         if (remoteManager.settings.endpoint.isEmpty()) {
-            throw IllegalStateException("Can't update strings when endpoint is not passed.")
+            dynodictCallback.errorOccurred(EndpointNotSetException("Can't update strings when endpoint is not passed."))
         }
     }
 }

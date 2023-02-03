@@ -1,25 +1,51 @@
 package org.dynodict.model.settings
 
-import org.dynodict.org.dynodict.model.settings.ParameterFallbackStrategy
-
 data class Settings(
-    val fallbackStrategy: FallbackStrategy,
-    val parameterStrategy: ParameterFallbackStrategy
+    val stringNotFoundPolicy: StringNotFoundPolicy,
+    val redundantPlaceholderPolicy: RedundantPlaceholderPolicy,
+    val notFoundPlaceholderPolicy: NotFoundPlaceholderPolicy
 ) {
     companion object {
-        val Default = Settings(
-            fallbackStrategy = FallbackStrategy.ReturnDefault,
-            parameterStrategy = ParameterFallbackStrategy.ReplaceByEmptyString
-        )
 
         val Strict = Settings(
-            fallbackStrategy = FallbackStrategy.ThrowException,
-            parameterStrategy = ParameterFallbackStrategy.ThrowException
+            stringNotFoundPolicy = StringNotFoundPolicy.ThrowException,
+            redundantPlaceholderPolicy = RedundantPlaceholderPolicy.ThrowException,
+            notFoundPlaceholderPolicy = NotFoundPlaceholderPolicy.ThrowException
         )
+
+        val Default = Strict
+
         val Production = Settings(
-            fallbackStrategy = FallbackStrategy.ReturnDefault,
-            parameterStrategy = ParameterFallbackStrategy.ReplaceByEmptyString
+            stringNotFoundPolicy = StringNotFoundPolicy.ReturnDefault,
+            redundantPlaceholderPolicy = RedundantPlaceholderPolicy.Remove,
+            notFoundPlaceholderPolicy = NotFoundPlaceholderPolicy.Nothing
         )
     }
+}
+
+/**
+ * Policy which should be applied when there are too many parameters
+ * passed to the Dynodict i.e.
+ * Example:
+ * String Price.TotalPrice.Label: "Total price is {totalPrice} {redundantParam}"
+ * Usage: val priceText = Price.TotalPrice.Label.get(price)
+ */
+enum class RedundantPlaceholderPolicy {
+    ThrowException, // throw exception when too many placeholder are in the text
+    Nothing, // do nothing with input
+    Remove // Remove placeholder from the input
+}
+
+/**
+ * Policy which should be applied when there are too few parameters
+ * in text received from the server
+ * Example:
+ * String Id: User.Data.MoneyToPayLabel
+ * Original: "You have to pay {price} till {date}"
+ * From Server: "You have to pay {price}."
+ * Usage: val payText = User.Data.MoneyToPayLabel.get(price, dueDate)
+ */
+enum class NotFoundPlaceholderPolicy {
+    ThrowException, Nothing
 }
 

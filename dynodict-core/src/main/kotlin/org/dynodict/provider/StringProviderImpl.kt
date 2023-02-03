@@ -1,31 +1,34 @@
 package org.dynodict.provider
 
-import org.dynodict.DefaultStringNotFoundException
-import org.dynodict.FormatterNotFoundException
-import org.dynodict.StringNotFoundException
+import org.dynodict.*
 import org.dynodict.formatter.*
 import org.dynodict.model.DLocale
 import org.dynodict.model.DString
 import org.dynodict.model.Parameter
 import org.dynodict.model.StringKey
 import org.dynodict.model.metadata.BucketMetadata
-import org.dynodict.model.settings.FallbackStrategy
+import org.dynodict.model.settings.NotFoundPlaceholderPolicy
 import org.dynodict.model.settings.Settings
+import org.dynodict.model.settings.StringNotFoundPolicy
+import org.dynodict.provider.validator.PlaceholderValidator
 import org.dynodict.storage.BucketsStorage
 import org.dynodict.storage.MetadataStorage
 import org.dynodict.storage.generateBucketName
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicReference
 
 class StringProviderImpl(
     private val bucketsStorage: BucketsStorage,
     private val metadataStorage: MetadataStorage,
     private val settings: Settings,
     private val defaultBucketsStorage: BucketsStorage,
-    private val defaultMetadataStorage: MetadataStorage
+    private val defaultMetadataStorage: MetadataStorage,
+    private val placeholderValidator: PlaceholderValidator,
+    private val dynodictCallback: DynodictCallback
 ) : StringProvider {
-    private var locale: DLocale? = null
-    private val buckets: MutableMap<StringKey, DString> = ConcurrentHashMap()
+    private val atomicLocale = AtomicReference<DLocale?>()
 
+    private val buckets: MutableMap<StringKey, DString> = ConcurrentHashMap()
     private val defaultBuckets: MutableMap<StringKey, DString> = ConcurrentHashMap()
 
     private val formatters: MutableMap<String, DynoDictFormatter<*>?> = mutableMapOf(
@@ -36,10 +39,21 @@ class StringProviderImpl(
     )
 
     override suspend fun setLocale(locale: DLocale) {
+        try {
+            setStringInternal(locale)
+        } catch (ex: LocaleNotFoundException) {
+            dynodictCallback.errorOccurred(ex)
+        } catch (ex: DefaultMetadataNotFoundException) {
+            dynodictCallback.errorOccurred(ex)
+        }
+    }
+
+    private suspend fun setStringInternal(locale: DLocale) {
+        atomicLocale.set(locale)
         val metadata = metadataStorage.get() ?: return
         val hasLocale = metadata.languages.contains(locale.value)
         if (!hasLocale) {
-            throw IllegalStateException("Locale $locale can not be found")
+            throw LocaleNotFoundException("Locale $locale can not be found")
         }
         val bucketsMetadata = metadata.buckets
 
@@ -47,11 +61,8 @@ class StringProviderImpl(
         buckets.putAll(readBucketsFromStorage(bucketsMetadata, locale, bucketsStorage))
 
         if (defaultBuckets.isEmpty()) {
-
             val defaultMetadata = defaultMetadataStorage.get()
-            requireNotNull(defaultMetadata) {
-                "Can't get default metadata. Make sure a file passed via assets is properly named and contains the required data"
-            }
+                ?: throw DefaultMetadataNotFoundException("Can't get default metadata. Make sure a file passed via assets is properly named and contains the required data")
 
             val defaultLanguage = DLocale(defaultMetadata.defaultLanguage)
 
@@ -64,6 +75,58 @@ class StringProviderImpl(
         }
     }
 
+
+    override fun registerFormatter(key: String, value: DynoDictFormatter<*>?) {
+        formatters[key] = value
+    }
+
+    override fun get(key: StringKey, vararg parameters: Parameter): String {
+
+        val value = buckets[key]?.value ?: handleNotFoundString(key)
+
+        // it is possible that empty string is returned as a fallback policy when string is not found
+        if (value.isEmpty()) return value
+
+        try {
+            val result = inflateParameters(value, parameters, key)
+
+            // post processing - validate if there any placeholder left
+            return placeholderValidator.validate(key, result)
+        } catch (ex: Exception) {
+            when (ex) {
+                is PlaceholderNotFoundException,
+                is FormatterNotFoundException,
+                is DefaultStringNotFoundException,
+                is StringNotFoundException -> {
+                    dynodictCallback.errorOccurred(ex)
+                }
+                else -> throw ex
+            }
+        }
+        return ""
+    }
+
+    private fun inflateParameters(
+        originalValue: String,
+        parameters: Array<out Parameter>,
+        key: StringKey
+    ): String {
+        var result = originalValue
+        // inflate parameters
+        parameters.forEach { parameter ->
+            val formattedParam = prepareParameter(parameter)
+
+            val indexOfParameter = result.indexOf("{${parameter.key}}")
+            if (settings.notFoundPlaceholderPolicy == NotFoundPlaceholderPolicy.ThrowException && indexOfParameter < 0) {
+                throw PlaceholderNotFoundException("Can not find placeholder for String. $key${parameter.key}")
+            }
+
+            result = result.replace("{${parameter.key}}", formattedParam, ignoreCase = true)
+        }
+        return result
+    }
+
+
     private suspend fun readBucketsFromStorage(
         bucketsMetadata: List<BucketMetadata>, locale: DLocale, storage: BucketsStorage
     ): Map<StringKey, DString> {
@@ -75,26 +138,6 @@ class StringProviderImpl(
             result.putAll(map)
         }
         return result
-    }
-
-    override fun get(key: StringKey, vararg parameters: Parameter): String {
-        val dString = buckets[key]
-        val string = dString?.value ?: handleNotFoundString(key)
-
-        if (string.isEmpty()) return string
-
-        var result = string
-        // inflate parameters
-        parameters.forEach { parameter ->
-            val formattedParam = prepareParameter(parameter)
-
-            result = result.replace("{${parameter.key}}", formattedParam, ignoreCase = true)
-        }
-        return result
-    }
-
-    override fun registerFormatter(key: String, value: DynoDictFormatter<*>?) {
-        formatters[key] = value
     }
 
     private fun findFormatter(parameter: Parameter): DynoDictFormatter<*>? {
@@ -119,22 +162,17 @@ class StringProviderImpl(
     }
 
     private fun handleNotFoundString(key: StringKey): String {
-        when (settings.fallbackStrategy) {
-            FallbackStrategy.ThrowException -> {
-                throw StringNotFoundException("String not found for key $key and locale: $locale")
+        when (settings.stringNotFoundPolicy) {
+            StringNotFoundPolicy.ThrowException -> {
+                throw StringNotFoundException("String not found for key $key and locale: ${atomicLocale.get()}")
             }
-            FallbackStrategy.EmptyString -> {
+            StringNotFoundPolicy.EmptyString -> {
                 return ""
             }
-            FallbackStrategy.ReturnDefault -> {
+            StringNotFoundPolicy.ReturnDefault -> {
                 // It should never be null for default storage
-                val value = defaultBuckets[key]?.value
-
-                if (value == null) {
-                    throw DefaultStringNotFoundException("Default String can not be found for key:$key")
-                }
-
-                return value
+                return defaultBuckets[key]?.value
+                    ?: throw DefaultStringNotFoundException("Default String can not be found for key:$key")
             }
         }
     }
@@ -144,5 +182,6 @@ class StringProviderImpl(
         const val DEFAULT_LONG_FORMATTER = "DefaultLongFormatter"
         const val DEFAULT_FLOAT_FORMATTER = "DefaultFloatFormatter"
         const val DEFAULT_STRING_FORMATTER = "DefaultStringFormatter"
+
     }
 }

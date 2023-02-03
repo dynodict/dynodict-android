@@ -3,7 +3,6 @@ plugins {
     id("com.android.application") version Config.gradlePlugin apply false
     id("com.android.library") version Config.gradlePlugin apply false
     id("org.jetbrains.kotlin.android") version Config.kotlin apply false
-    id("org.dynodict.plugin") version Versions.dynodictPlugin apply false
     id("org.jetbrains.kotlin.plugin.serialization") version Config.kotlin apply false
     id("org.jetbrains.kotlin.jvm") version Config.kotlin apply false
 }

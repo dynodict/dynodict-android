@@ -1,7 +1,6 @@
+import org.dynodict.model.DString
 import org.dynodict.plugin.generation.ObjectsGenerator
 import org.dynodict.plugin.generation.StringModel
-import org.dynodict.plugin.remote.DString
-import org.dynodict.plugin.remote.Parameter
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test

@@ -11,6 +11,7 @@ android {
     defaultConfig {
         minSdk = Config.minSdk
         targetSdk = Config.targetSdk
+        version = Versions.dynodictLibrary
     }
 
     buildTypes {

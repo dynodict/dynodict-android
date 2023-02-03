@@ -1,5 +1,5 @@
 package org.dynodict.model.settings
 
-enum class FallbackStrategy {
+enum class StringNotFoundPolicy {
     ThrowException, EmptyString, ReturnDefault
 }

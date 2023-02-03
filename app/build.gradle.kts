@@ -1,7 +1,14 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
-    id("org.dynodict.plugin")
+    // If this plugin can not be found i.e. this error happens:
+    // Plugin [id: 'org.dynodict.plugin', version: '0.5.2', apply: false] was not found in any of the following sources:
+    // Do the following:
+    // 1. Comment out this line and
+    // 2. Run ./gradlew deployCore
+    // 3. Run ./gradlew deployAll
+    // 4. Uncomment this line and perform sync once again
+    id("org.dynodict.plugin") version Versions.dynodictPlugin
 }
 
 android {

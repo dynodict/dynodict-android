@@ -18,14 +18,22 @@
   version
 - [x] Try to find the package name automatically
 - [x] Create abstraction over kotlinx.serialization - Migrate to StringFormat instead of
-- [ ] Create
-- [ ] Create task to deploy using one command
-- [ ] Clean up
+- [x] Create task to deploy using one command
+- [x] Clean up
+- [ ] Parameters verification
+- [ ] Create remote models for DString, Bucket, etc.
+- [ ] Create StringProviderCallback to catch all Exception happened during getting the string
 - [ ] Migrate to Initializer instead of ContentProvider
 - [ ] Add tests
-- [ ] Parameters verification
 - [ ] Add enum FormatterNotFoundStrategy to take care the scenario when format can't be found
 - [ ] Deploy to real maven repository
+
+### Parameters edge cases
+
+- There are more parameters than in metadata - remove
+- There are too few parameters so nothing to inflate - just skip?
+- Incorrect formatter
+- Incorrect type
 
 ```json
 {
