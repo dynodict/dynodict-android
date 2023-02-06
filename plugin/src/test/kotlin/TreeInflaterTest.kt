@@ -1,7 +1,6 @@
-import org.dynodict.plugin.generation.StringModel
+import org.dynodict.model.Bucket
+import org.dynodict.model.DString
 import org.dynodict.plugin.generation.TreeInflater
-import org.dynodict.plugin.remote.Bucket
-import org.dynodict.plugin.remote.DString
 import org.junit.Assert.assertEquals
 import org.junit.Test
 

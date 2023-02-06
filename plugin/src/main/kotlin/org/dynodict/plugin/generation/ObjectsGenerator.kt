@@ -82,7 +82,7 @@ class ObjectsGenerator(private val packageName: String) {
         appendLine("): String {")
         val paramsString = model.params.prepareListOfParameters()
         appendLineWithTab(
-            "return DynoDict.instance.get(this, $paramsString)",
+            "return DynoDict.instance.get(this$paramsString)",
             level + 2
         )
         appendLineWithTab("}", tabs = level + 1)
@@ -91,13 +91,13 @@ class ObjectsGenerator(private val packageName: String) {
     }
 
     private fun List<RemoteParameter>.prepareListOfParameters(): String {
-        val params = joinToString(",") { item ->
+        val params = joinToString(separator = ",") { item ->
             val type = item.identifyType()
 
             val format = if (item.format == null) "" else ", format = \"${item.format}\""
             "Parameter.${type}Parameter(${item.key}, key = \"${item.key}\"$format)"
         }
-        return params
+        return if (params.isEmpty()) params else ", $params"
     }
 
     private val types = mapOf(
@@ -120,10 +120,5 @@ class ObjectsGenerator(private val packageName: String) {
             throw IllegalTypeException("This type ($type) is not supported. Please use one of: ${types.keys}")
         }
         return evaluatedType
-    }
-
-
-    companion object {
-        private const val TAB = "    "
     }
 }

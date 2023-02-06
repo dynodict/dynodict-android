@@ -1,8 +1,9 @@
 import org.dynodict.model.DString
+import org.dynodict.model.RemoteParameter
+import org.dynodict.plugin.exception.IllegalTypeException
 import org.dynodict.plugin.generation.ObjectsGenerator
 import org.dynodict.plugin.generation.StringModel
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
+import org.junit.Assert.*
 import org.junit.Test
 
 class ObjectsGeneratorTest {
@@ -13,7 +14,8 @@ class ObjectsGeneratorTest {
         val input =
             mapOf("LoginScreen" to StringModel(mutableMapOf("Login" to StringModel(value = leaf))))
         with(ObjectsGenerator("org.dynodict.generated")) {
-            val result = generate(input)
+            val customFormats = mutableSetOf<String>()
+            val result = generate(input, customFormats)
             println(result)
             assertTrue(result.startsWith(HEADER))
         }
@@ -25,7 +27,8 @@ class ObjectsGeneratorTest {
         val input =
             mapOf("LoginScreen" to StringModel(mutableMapOf("Login" to StringModel(value = leaf))))
         with(ObjectsGenerator("org.dynodict.generated")) {
-            val result = generate(input)
+            val customFormats = mutableSetOf<String>()
+            val result = generate(input, customFormats)
             println(result)
             assertTrue(result.contains(NO_PARAMS))
         }
@@ -37,11 +40,13 @@ class ObjectsGeneratorTest {
         val leaf = DString(
             key = "Name",
             value = "Login",
-            params = listOf(Parameter(key = "param1", type = "String")))
+            params = listOf(RemoteParameter(key = "param1", type = "String"))
+        )
         val input =
             mapOf("LoginScreen" to StringModel(mutableMapOf("Login" to StringModel(value = leaf))))
         with(ObjectsGenerator("org.dynodict.generated")) {
-            val result = generate(input)
+            val customFormats = mutableSetOf<String>()
+            val result = generate(input, customFormats)
             println(result)
             assertTrue(result.contains(ONE_PARAM))
         }
@@ -52,13 +57,37 @@ class ObjectsGeneratorTest {
         val leaf = DString(
             key = "Name",
             value = "Login",
-            params = listOf(Parameter(key = "param1", type = "String", format = "loggedAt")))
+            params = listOf(RemoteParameter(key = "param1", type = "String", format = "loggedAt"))
+        )
         val input =
             mapOf("LoginScreen" to StringModel(mutableMapOf("Login" to StringModel(value = leaf))))
         with(ObjectsGenerator("org.dynodict.generated")) {
-            val result = generate(input)
+            val customFormats = mutableSetOf<String>()
+            val result = generate(input, customFormats)
             println(result)
             assertTrue(result.contains(ONE_PARAM_AND_CUSTOM_FORMAT))
+            assertEquals(1, customFormats.size)
+            assertEquals("loggedAt", customFormats.first())
+        }
+    }
+
+    @Test
+    fun `incorrect parameter type`() {
+        val leaf = DString(
+            key = "Name",
+            value = "Login",
+            params = listOf(RemoteParameter(key = "param1", type = "Integer"))
+        )
+        val input =
+            mapOf("LoginScreen" to StringModel(mutableMapOf("Login" to StringModel(value = leaf))))
+        with(ObjectsGenerator("org.dynodict.generated")) {
+            try {
+                val customFormats = mutableSetOf<String>()
+                generate(input, customFormats)
+                fail()
+            } catch (ex: IllegalTypeException) {
+                // expected
+            }
         }
     }
 
@@ -68,7 +97,6 @@ class ObjectsGeneratorTest {
 
 import org.dynodict.DynoDict
 import org.dynodict.model.StringKey
-import org.dynodict.model.Key
 import org.dynodict.model.Parameter
 
 """
@@ -76,7 +104,7 @@ import org.dynodict.model.Parameter
 object LoginScreen : StringKey("LoginScreen") {
     object Login : StringKey("Login", LoginScreen) {
         fun get(): String {
-            return DynoDict.instance.get(Key(absolutePath, params = listOf()))
+            return DynoDict.instance.get(this)
         }
     }
 }
@@ -85,7 +113,7 @@ object LoginScreen : StringKey("LoginScreen") {
 object LoginScreen : StringKey("LoginScreen") {
     object Login : StringKey("Login", LoginScreen) {
         fun get(param1: String): String {
-            return DynoDict.instance.get(Key(absolutePath, params = listOf(Parameter.StringParameter(param1))))
+            return DynoDict.instance.get(this, Parameter.StringParameter(param1, key = "param1"))
         }
     }
 }
@@ -95,7 +123,7 @@ object LoginScreen : StringKey("LoginScreen") {
 object LoginScreen : StringKey("LoginScreen") {
     object Login : StringKey("Login", LoginScreen) {
         fun get(param1: String): String {
-            return DynoDict.instance.get(Key(absolutePath, params = listOf(Parameter.StringParameter(param1, format = "loggedAt"))))
+            return DynoDict.instance.get(this, Parameter.StringParameter(param1, key = "param1", format = "loggedAt"))
         }
     }
 }

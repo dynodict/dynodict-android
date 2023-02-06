@@ -25,7 +25,13 @@
 - [ ] Create StringProviderCallback to catch all Exception happened during getting the string
 - [ ] Migrate to Initializer instead of ContentProvider
 - [ ] Add tests
-- [ ] Add enum FormatterNotFoundStrategy to take care the scenario when format can't be found
+  * DynoDictManagerImpl
+  * ParametersEvaluator
+  * ObjectsGenerator. IllegalTypeException -> identifyType() +
+  * RemoteManagerImpl
+  * Bucket.generateFilename()
+  * StorageManagerImpl()
+- [x] ~~Add enum FormatterNotFoundStrategy to take care the scenario when format can't be found~~ No need since it can be handled via DynodictCallback
 - [ ] Deploy to real maven repository
 
 ### Parameters edge cases

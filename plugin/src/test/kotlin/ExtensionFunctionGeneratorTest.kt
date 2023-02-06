@@ -28,25 +28,23 @@ class ExtensionFunctionGeneratorTest {
             val result = generate(listOf("startDate", "money", "paymentDate", "fullDate"))
 
             println("result:$result")
-            println("Params: $MANY_PARAMETERS")
             assertTrue(result.contains(MANY_PARAMETERS))
         }
     }
 
     companion object {
-        const val FEW_PARAMETERS = """fun DynoDict.registerFormatters(
+        const val FEW_PARAMETERS = """fun DynoDict.Companion.registerFormatters(
     startDateFormatter: DynoDictFormatter<*>,
     moneyFormatter: DynoDictFormatter<*>
 ) {
     with(DynoDict.instance) {
-
         registerFormatter("startDate", startDateFormatter)
         registerFormatter("money", moneyFormatter)
     }
 }"""
 
 
-        const val MANY_PARAMETERS = """fun DynoDict.registerFormatters(formats: Map<String, DynoDictFormatter<*>>) {
+        const val MANY_PARAMETERS = """fun DynoDict.Companion.registerFormatters(formats: Map<String, DynoDictFormatter<*>>) {
     val list = listOf("startDate", "money", "paymentDate", "fullDate")
     val result = list - formats.keys
     if (result.isNotEmpty()) {""" +
