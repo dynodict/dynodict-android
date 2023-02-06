@@ -3,7 +3,7 @@ package org.dynodict.storage
 import kotlinx.serialization.StringFormat
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
-import org.dynodict.model.Bucket
+import org.dynodict.model.bucket.Bucket
 import java.io.File
 import java.nio.charset.Charset
 

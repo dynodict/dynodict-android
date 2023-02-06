@@ -1,7 +1,7 @@
 package org.dynodict.storage
 
-import org.dynodict.model.Bucket
-import org.dynodict.model.DString
+import org.dynodict.model.bucket.Bucket
+import org.dynodict.model.bucket.DString
 import org.dynodict.model.metadata.BucketMetadata
 import org.dynodict.model.metadata.BucketsMetadata
 

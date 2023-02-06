@@ -4,6 +4,9 @@ import org.dynodict.DynodictCallback
 import org.dynodict.EndpointNotSetException
 import org.dynodict.MetadataNotFoundException
 import org.dynodict.errorOccurred
+import org.dynodict.mapper.toDomainBucket
+import org.dynodict.mapper.toDomainMetadata
+import org.dynodict.mapper.toRemoteMetadata
 import org.dynodict.model.metadata.BucketMetadata
 import org.dynodict.model.metadata.BucketsMetadata
 import org.dynodict.remote.RemoteManager
@@ -28,7 +31,7 @@ class DynoDictManagerImpl(
     override suspend fun updateMetadata(): BucketsMetadata? {
         validateRemoteSettings()
 
-        val metadata = remoteManager.getMetadata()
+        val metadata = remoteManager.getMetadata()?.toDomainMetadata()
         if (metadata == null) {
             val exception = MetadataNotFoundException("Error during getting the metadata")
             dynodictCallback.errorOccurred(exception, onHandled = { return null })
@@ -40,9 +43,9 @@ class DynoDictManagerImpl(
 
     override suspend fun updateBuckets(bucketsMetadata: BucketsMetadata) {
         validateRemoteSettings()
-        val result = remoteManager.getStrings(bucketsMetadata)
+        val result = remoteManager.getStrings(bucketsMetadata.toRemoteMetadata())
 
-        storageManager.storeBuckets(result)
+        storageManager.storeBuckets(result.map{it.toDomainBucket()})
     }
 
     override suspend fun removeBuckets(buckets: List<BucketMetadata>) {

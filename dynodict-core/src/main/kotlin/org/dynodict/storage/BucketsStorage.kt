@@ -1,6 +1,6 @@
 package org.dynodict.storage
 
-import org.dynodict.model.Bucket
+import org.dynodict.model.bucket.Bucket
 import org.dynodict.model.metadata.BucketsMetadata
 
 interface BucketsStorage {

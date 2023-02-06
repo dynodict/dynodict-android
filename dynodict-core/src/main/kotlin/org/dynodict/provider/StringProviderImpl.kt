@@ -3,7 +3,7 @@ package org.dynodict.provider
 import org.dynodict.*
 import org.dynodict.formatter.*
 import org.dynodict.model.DLocale
-import org.dynodict.model.DString
+import org.dynodict.model.bucket.DString
 import org.dynodict.model.Parameter
 import org.dynodict.model.StringKey
 import org.dynodict.model.metadata.BucketMetadata

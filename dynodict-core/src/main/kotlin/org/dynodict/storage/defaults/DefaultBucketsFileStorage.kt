@@ -1,7 +1,7 @@
 package org.dynodict.storage.defaults
 
 import kotlinx.serialization.StringFormat
-import org.dynodict.model.Bucket
+import org.dynodict.model.bucket.Bucket
 import org.dynodict.storage.FileBucketsStorage
 import org.dynodict.storage.copyAndClose
 import java.io.File

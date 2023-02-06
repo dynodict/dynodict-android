@@ -1,4 +1,4 @@
-package org.dynodict.model
+package org.dynodict.remote.model.bucket
 
 import kotlinx.serialization.Serializable
 

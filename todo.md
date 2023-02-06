@@ -31,6 +31,8 @@
   * RemoteManagerImpl
   * Bucket.generateFilename()
   * StorageManagerImpl()
+  * MetadataMapper
+  * BucketMapper
 - [x] ~~Add enum FormatterNotFoundStrategy to take care the scenario when format can't be found~~ No need since it can be handled via DynodictCallback
 - [ ] Deploy to real maven repository
 

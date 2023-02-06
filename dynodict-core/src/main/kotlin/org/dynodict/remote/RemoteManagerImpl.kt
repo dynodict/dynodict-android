@@ -7,9 +7,9 @@ import kotlinx.serialization.decodeFromString
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
-import org.dynodict.model.Bucket
-import org.dynodict.model.metadata.BucketMetadata
-import org.dynodict.model.metadata.BucketsMetadata
+import org.dynodict.model.bucket.Bucket
+import org.dynodict.remote.model.metadata.RemoteBucketMetadata
+import org.dynodict.remote.model.metadata.RemoteBucketsMetadata
 
 class RemoteManagerImpl(
     override val settings: RemoteSettings,
@@ -18,7 +18,7 @@ class RemoteManagerImpl(
     private val client = OkHttpClient()
     private val metadataUrl = settings.endpoint + "metadata.json"
 
-    override suspend fun getMetadata(): BucketsMetadata? {
+    override suspend fun getMetadata(): RemoteBucketsMetadata? {
         val request = Request.Builder().url(metadataUrl).build()
         val response = client.newCall(request).execute()
         val body = response.body?.string()
@@ -27,10 +27,10 @@ class RemoteManagerImpl(
         }
         if (body.isNullOrEmpty()) return null
 
-        return converter.decodeFromString<BucketsMetadata>(body)
+        return converter.decodeFromString<RemoteBucketsMetadata>(body)
     }
 
-    override suspend fun getStrings(metadata: BucketsMetadata): List<Bucket> {
+    override suspend fun getStrings(metadata: RemoteBucketsMetadata): List<Bucket> {
         val buckets = mutableListOf<Bucket>()
 
         val requests = metadata.buckets.flatMap { bucket ->
@@ -48,7 +48,7 @@ class RemoteManagerImpl(
 
             deferred.forEach {
                 val result = it.await()
-                val bucketInfo = result.request.tag() as BucketMetadata
+                val bucketInfo = result.request.tag() as RemoteBucketMetadata
                 val bucket = parseBucket(result, bucketInfo)
                 buckets.add(bucket)
             }
@@ -56,7 +56,7 @@ class RemoteManagerImpl(
         return buckets
     }
 
-    private fun parseBucket(response: Response, info: BucketMetadata): Bucket {
+    private fun parseBucket(response: Response, info: RemoteBucketMetadata): Bucket {
         val body = response.body?.string()
         if (response.code != 200) {
             throw IllegalStateException("Response code is not 200.")
@@ -66,11 +66,11 @@ class RemoteManagerImpl(
         return decoded.copy(name = info.name, language = info.language)
     }
 
-    private fun BucketMetadata.toRequest(url: String, language: String): Request {
+    private fun RemoteBucketMetadata.toRequest(url: String, language: String): Request {
         return Request.Builder().url(url + generateFilename(language)).tag(this).build()
     }
 
-    private fun BucketMetadata.generateFilename(language: String): String {
+    private fun RemoteBucketMetadata.generateFilename(language: String): String {
         return "$name-$schemeVersion-$language.json"
     }
 }

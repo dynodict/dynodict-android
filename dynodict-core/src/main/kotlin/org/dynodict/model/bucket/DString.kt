@@ -1,12 +1,11 @@
-package org.dynodict.model
+package org.dynodict.model.bucket
 
 import kotlinx.serialization.Serializable
 
 @Serializable
 data class DString(
     val key: String,
-    val value: String,
-    val params: List<RemoteParameter> = emptyList()
+    val value: String
 )
 
 
