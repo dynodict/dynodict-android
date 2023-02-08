@@ -3,7 +3,7 @@ package org.dynodict.plugin
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.encodeToStream
-import org.dynodict.model.Bucket
+import org.dynodict.mapper.toDomainMetadata
 import org.dynodict.model.metadata.BucketsMetadata
 import org.dynodict.plugin.evaluator.ParametersEvaluator
 import org.dynodict.plugin.generation.ExtensionFunctionGenerator
@@ -12,6 +12,7 @@ import org.dynodict.plugin.generation.StringModel
 import org.dynodict.plugin.generation.TreeInflater
 import org.dynodict.remote.RemoteManagerImpl
 import org.dynodict.remote.RemoteSettings
+import org.dynodict.remote.model.bucket.RemoteBucket
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.OutputDirectory
@@ -26,13 +27,13 @@ open class DownloadStringsTask : DefaultTask() {
         description = "Directory to generate source files",
     )
     @get:Input
-    var sourcesDir = ""
+    var sourcesDirParam = ""
 
     @set:Option(
         option = "assets", description = "Directory to copy default assets files"
     )
     @get:Input
-    var assetsDir = ""
+    var assetsDirParam = ""
 
     @set:Option(
         option = "url", description = "Url of the repository to download metadata and buckets"
@@ -44,27 +45,25 @@ open class DownloadStringsTask : DefaultTask() {
         option = "package", description = "Package name for the app"
     )
     @get:Input
-    var packageName: String = ""
+    var packageNameParam: String = ""
 
     @OutputDirectory
-    var projectDirectory: File = File("")
+    var projectDirectoryParam: File = File("")
 
     private val treeInflater = TreeInflater()
-    private val paramEvaluator = ParametersEvaluator()
+    private val paramEvaluator by lazy { ParametersEvaluator(projectDirectoryParam) }
 
     @TaskAction
     fun download() {
         val json = Json {
-            ignoreUnknownKeys = true
             prettyPrint = true
         }
-        val outputDirectories = paramEvaluator.evaluateAndCreateIfNeeded(
-            projectDirectory,
-            assetsDir,
-            sourcesDir,
-            packageName)
 
-        println("Download task. Folders - $outputDirectories")
+        val assetsDir = paramEvaluator.evaluateAssetsFolder(assetsDirParam)
+        val (sourcesDir, packageName) = paramEvaluator.evaluateSourcesAndPackage(sourcesDirParam, packageNameParam)
+
+        println("Download task. Assets - $assetsDir, sources - $sourcesDir")
+
         val remoteManager = RemoteManagerImpl(RemoteSettings(url), json)
 
         runBlocking {
@@ -80,11 +79,11 @@ open class DownloadStringsTask : DefaultTask() {
 
             val customFormats = mutableSetOf<String>()
             buckets.forEach {
-                mapBucket(it, customFormats, outputDirectories.second, outputDirectories.third)
-                generateAssetsJson(it, json, outputDirectories.first)
+                mapBucket(it, customFormats, sourcesDir, packageName)
+                generateAssetsJson(it, json, assetsDir)
             }
 
-            writeMetadataToAssets(metadata, json, outputDirectories.first)
+            writeMetadataToAssets(metadata.toDomainMetadata(), json, assetsDir)
         }
     }
 
@@ -102,7 +101,7 @@ open class DownloadStringsTask : DefaultTask() {
     }
 
     private fun mapBucket(
-        bucket: Bucket,
+        bucket: RemoteBucket,
         customFormats: MutableSet<String>,
         sourceDir: File,
         packageName: String
@@ -111,7 +110,7 @@ open class DownloadStringsTask : DefaultTask() {
         generateSources(roots, sourceDir, customFormats, packageName)
     }
 
-    private fun generateAssetsJson(bucket: Bucket, json: Json, assetsDirectory: File) {
+    private fun generateAssetsJson(bucket: RemoteBucket, json: Json, assetsDirectory: File) {
         val processed = bucket.translations.map {
             // clear params since it should not be used in resulting JSON
             it.copy(params = listOf())
@@ -133,7 +132,7 @@ open class DownloadStringsTask : DefaultTask() {
         return name + "_$schemeVersion" + "_$language.json"
     }
 
-    private fun Bucket.generateFilename(): String {
+    private fun RemoteBucket.generateFilename(): String {
         return generateBucketName(name!!, language!!, schemeVersion)
     }
 

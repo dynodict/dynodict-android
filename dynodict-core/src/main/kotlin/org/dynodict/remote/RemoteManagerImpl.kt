@@ -7,7 +7,7 @@ import kotlinx.serialization.decodeFromString
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
-import org.dynodict.model.bucket.Bucket
+import org.dynodict.remote.model.bucket.RemoteBucket
 import org.dynodict.remote.model.metadata.RemoteBucketMetadata
 import org.dynodict.remote.model.metadata.RemoteBucketsMetadata
 
@@ -30,8 +30,8 @@ class RemoteManagerImpl(
         return converter.decodeFromString<RemoteBucketsMetadata>(body)
     }
 
-    override suspend fun getStrings(metadata: RemoteBucketsMetadata): List<Bucket> {
-        val buckets = mutableListOf<Bucket>()
+    override suspend fun getStrings(metadata: RemoteBucketsMetadata): List<RemoteBucket> {
+        val buckets = mutableListOf<RemoteBucket>()
 
         val requests = metadata.buckets.flatMap { bucket ->
             metadata.languages.map { language ->
@@ -56,13 +56,13 @@ class RemoteManagerImpl(
         return buckets
     }
 
-    private fun parseBucket(response: Response, info: RemoteBucketMetadata): Bucket {
+    private fun parseBucket(response: Response, info: RemoteBucketMetadata): RemoteBucket {
         val body = response.body?.string()
         if (response.code != 200) {
             throw IllegalStateException("Response code is not 200.")
         }
         if (body.isNullOrEmpty()) throw IllegalStateException("Empty response")
-        val decoded: Bucket = converter.decodeFromString(body)
+        val decoded: RemoteBucket = converter.decodeFromString(body)
         return decoded.copy(name = info.name, language = info.language)
     }
 

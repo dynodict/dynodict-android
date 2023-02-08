@@ -1,8 +1,8 @@
-import org.dynodict.model.DString
-import org.dynodict.model.RemoteParameter
+package org.dynodict.plugin.generation
+
 import org.dynodict.plugin.exception.IllegalTypeException
-import org.dynodict.plugin.generation.ObjectsGenerator
-import org.dynodict.plugin.generation.StringModel
+import org.dynodict.remote.model.bucket.RemoteDString
+import org.dynodict.remote.model.bucket.RemoteParameter
 import org.junit.Assert.*
 import org.junit.Test
 
@@ -10,7 +10,7 @@ class ObjectsGeneratorTest {
 
     @Test
     fun `imports and package should be properly inflated`() {
-        val leaf = DString(key = "Name", value = "Login")
+        val leaf = RemoteDString(key = "Name", value = "Login")
         val input =
             mapOf("LoginScreen" to StringModel(mutableMapOf("Login" to StringModel(value = leaf))))
         with(ObjectsGenerator("org.dynodict.generated")) {
@@ -23,7 +23,7 @@ class ObjectsGeneratorTest {
 
     @Test
     fun `one tree without parameters`() {
-        val leaf = DString(key = "Name", value = "Login")
+        val leaf = RemoteDString(key = "Name", value = "Login")
         val input =
             mapOf("LoginScreen" to StringModel(mutableMapOf("Login" to StringModel(value = leaf))))
         with(ObjectsGenerator("org.dynodict.generated")) {
@@ -37,7 +37,7 @@ class ObjectsGeneratorTest {
 
     @Test
     fun `one tree with one String parameter`() {
-        val leaf = DString(
+        val leaf = RemoteDString(
             key = "Name",
             value = "Login",
             params = listOf(RemoteParameter(key = "param1", type = "String"))
@@ -54,7 +54,7 @@ class ObjectsGeneratorTest {
 
     @Test
     fun `one tree with one String parameter and custom format`() {
-        val leaf = DString(
+        val leaf = RemoteDString(
             key = "Name",
             value = "Login",
             params = listOf(RemoteParameter(key = "param1", type = "String", format = "loggedAt"))
@@ -73,7 +73,7 @@ class ObjectsGeneratorTest {
 
     @Test
     fun `incorrect parameter type`() {
-        val leaf = DString(
+        val leaf = RemoteDString(
             key = "Name",
             value = "Login",
             params = listOf(RemoteParameter(key = "param1", type = "Integer"))

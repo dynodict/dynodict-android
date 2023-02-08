@@ -1,8 +1,8 @@
 package org.dynodict.plugin.generation
 
-import org.dynodict.model.DString
-import org.dynodict.model.RemoteParameter
 import org.dynodict.plugin.exception.IllegalTypeException
+import org.dynodict.remote.model.bucket.RemoteDString
+import org.dynodict.remote.model.bucket.RemoteParameter
 import java.util.*
 
 class ObjectsGenerator(private val packageName: String) {
@@ -63,7 +63,7 @@ class ObjectsGenerator(private val packageName: String) {
     private fun StringBuilder.generateLeaf(
         parent: String?,
         key: String,
-        model: DString,
+        model: RemoteDString,
         level: Int,
         customFormats: MutableSet<String>
     ) {

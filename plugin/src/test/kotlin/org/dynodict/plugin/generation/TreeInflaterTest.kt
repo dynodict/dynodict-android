@@ -1,6 +1,7 @@
-import org.dynodict.model.Bucket
-import org.dynodict.model.DString
-import org.dynodict.plugin.generation.TreeInflater
+package org.dynodict.plugin.generation
+
+import org.dynodict.remote.model.bucket.RemoteBucket
+import org.dynodict.remote.model.bucket.RemoteDString
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -9,15 +10,15 @@ class TreeInflaterTest {
     @Test
     fun test() {
         val task = TreeInflater()
-        val bucket = Bucket(
+        val bucket = RemoteBucket(
             schemeVersion = 1,
             editionVersion = 2,
             name = "login",
             translations = listOf(
-                DString(
+                RemoteDString(
                     key = "AuthScreen.Login.Button.Name", value = "Login",
                 ),
-                DString(
+                RemoteDString(
                     key = "AuthScreen.Login.EditTextHint.Hint", value = "Enter your email",
                 ))
         )

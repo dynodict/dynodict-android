@@ -1,9 +1,10 @@
 package org.dynodict.plugin.generation
 
-import org.dynodict.model.Bucket
+import org.dynodict.remote.model.bucket.RemoteBucket
+
 
 class TreeInflater {
-    fun generateTree(bucket: Bucket): MutableMap<String, StringModel> {
+    fun generateTree(bucket: RemoteBucket): MutableMap<String, StringModel> {
         val roots = mutableMapOf<String, StringModel>()
 
         bucket.translations.map { dString ->

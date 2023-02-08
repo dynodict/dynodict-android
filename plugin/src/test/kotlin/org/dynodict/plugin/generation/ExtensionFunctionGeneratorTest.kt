@@ -1,4 +1,5 @@
-import org.dynodict.plugin.generation.ExtensionFunctionGenerator
+package org.dynodict.plugin.generation
+
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
