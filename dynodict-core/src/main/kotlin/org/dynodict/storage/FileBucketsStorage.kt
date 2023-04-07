@@ -25,7 +25,6 @@ open class FileBucketsStorage(
     }
 }
 
-fun Bucket.generateFilename(): String {
-    // TODO handle name + language as nullable object
-    return generateBucketName(name!!, language!!, schemeVersion)
+private fun Bucket.generateFilename(): String {
+    return generateBucketName(name, language, schemeVersion)
 }

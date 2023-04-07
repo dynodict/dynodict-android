@@ -9,8 +9,8 @@ fun RemoteBucket.toDomainBucket(): Bucket {
     return Bucket(
         schemeVersion = schemeVersion,
         editionVersion = editionVersion,
-        name = name,
-        language = language,
+        name = name.orEmpty(),
+        language = language.orEmpty(),
         translations = translations.map { it.toDomainDString() }
     )
 }

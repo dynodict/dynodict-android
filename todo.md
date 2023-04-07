@@ -20,8 +20,8 @@
 - [x] Create abstraction over kotlinx.serialization - Migrate to StringFormat instead of
 - [x] Create task to deploy using one command
 - [x] Clean up
-- [ ] Parameters verification
-- [ ] Create remote models for DString, Bucket, etc.
+- [x] Parameters verification
+- [x] Create remote models for DString, Bucket, etc.
 - [ ] Create StringProviderCallback to catch all Exception happened during getting the string
 - [ ] Migrate to Initializer instead of ContentProvider
 - [ ] Add tests
@@ -31,10 +31,12 @@
   * RemoteManagerImpl
   * Bucket.generateFilename()
   * StorageManagerImpl()
-  * MetadataMapper
-  * BucketMapper
+  * MetadataMapper + 
+  * BucketMapper +
 - [x] ~~Add enum FormatterNotFoundStrategy to take care the scenario when format can't be found~~ No need since it can be handled via DynodictCallback
 - [ ] Deploy to real maven repository
+- [ ] Create **sh** file to deploy all sequentially
+- [ ] Split by retrofit and core implementation
 
 ### Parameters edge cases
 

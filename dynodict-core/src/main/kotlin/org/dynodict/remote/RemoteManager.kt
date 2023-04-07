@@ -1,7 +1,5 @@
 package org.dynodict.remote
 
-import org.dynodict.model.bucket.Bucket
-import org.dynodict.model.metadata.BucketsMetadata
 import org.dynodict.remote.model.bucket.RemoteBucket
 import org.dynodict.remote.model.metadata.RemoteBucketsMetadata
 

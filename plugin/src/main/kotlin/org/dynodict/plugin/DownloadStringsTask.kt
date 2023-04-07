@@ -133,7 +133,7 @@ open class DownloadStringsTask : DefaultTask() {
     }
 
     private fun RemoteBucket.generateFilename(): String {
-        return generateBucketName(name!!, language!!, schemeVersion)
+        return generateBucketName(name, language, schemeVersion)
     }
 
     private fun generateSources(

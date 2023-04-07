@@ -7,5 +7,5 @@ data class BucketMetadata(
     val name: String,
     val schemeVersion: Int,
     val editionVersion: Int,
-    val language: String? = null
+    val language: String = "",
 )

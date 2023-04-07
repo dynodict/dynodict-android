@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 data class Bucket(
     val schemeVersion: Int,
     val editionVersion: Int,
-    val name: String? = null, // nullable because on BE
-    val language: String? = null,
+    val name: String,
+    val language: String,
     val translations: List<DString> = emptyList(),
 )

@@ -8,7 +8,7 @@ plugins {
     // 2. Run ./gradlew deployCore
     // 3. Run ./gradlew deployAll
     // 4. Uncomment this line and perform sync once again
-    id("org.dynodict.plugin") version Versions.dynodictPlugin
+//    id("org.dynodict.plugin") version Versions.dynodictPlugin
 }
 
 android {
@@ -49,8 +49,9 @@ android {
 
 dependencies {
 
-    implementation(Deps.dynodictAndroid)
+//    implementation(Deps.dynodictAndroid)
     implementation(Deps.serializationJson)
+    implementation(project(":dynodict-android"))
 
     implementation(Deps.UI.material)
 

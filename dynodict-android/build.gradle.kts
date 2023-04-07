@@ -50,7 +50,8 @@ publishing {
     }
 }
 dependencies {
-    implementation(Deps.dynodictCore)
+//    api(Deps.dynodictCore)
+    api(project(":dynodict-core"))
     implementation(Deps.serializationJson)
 }
 

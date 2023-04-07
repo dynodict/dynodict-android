@@ -28,16 +28,13 @@ class StorageManagerImpl(
     }
 
     override suspend fun getBucket(metadata: BucketMetadata): Bucket? {
-        metadata.language?.let { language ->
-            return bucketsStorage.get(
-                generateBucketName(
-                    metadata.name,
-                    language,
-                    metadata.schemeVersion
-                )
+        return bucketsStorage.get(
+            generateBucketName(
+                metadata.name,
+                metadata.language,
+                metadata.schemeVersion
             )
-        }
-        return null
+        )
     }
 
     override suspend fun getAllForLanguage(language: String): List<DString> {
@@ -47,14 +44,15 @@ class StorageManagerImpl(
         val buckets = metadata?.buckets.orEmpty().map { it.copy(language = language) }
 
         return buckets.flatMap { bucketMetadata ->
-            bucketMetadata.getBucket(bucketsStorage)?.translations ?: emptyList()
+            bucketsStorage.getBucket(bucketMetadata)?.translations ?: emptyList()
         }
     }
 
-    private suspend fun BucketMetadata.getBucket(storage: BucketsStorage): Bucket? {
-        val bucketLang = language ?: return null
-        val filename = generateBucketName(name, bucketLang, schemeVersion)
-        return storage.get(filename)
+    private suspend fun BucketsStorage.getBucket(metadata: BucketMetadata): Bucket? {
+        with(metadata) {
+            val filename = generateBucketName(name, language, schemeVersion)
+            return get(filename)
+        }
     }
 
     override suspend fun storeBuckets(items: List<Bucket>) {
