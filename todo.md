@@ -37,6 +37,7 @@
 - [ ] Deploy to real maven repository
 - [ ] Create **sh** file to deploy all sequentially
 - [ ] Split by retrofit and core implementation
+- [ ] Create multiple build types/flavor to rely on either direct folder or deployed lib
 
 ### Parameters edge cases
 

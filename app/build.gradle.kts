@@ -32,6 +32,19 @@ android {
             )
         }
     }
+    flavorDimensionList += "type"
+
+    productFlavors {
+        create("project") {
+            dimension = "type"
+            matchingFallbacks += "project"
+        }
+        create("maven") {
+            dimension = "type"
+            matchingFallbacks += "maven"
+        }
+    }
+
     compileOptions {
         sourceCompatibility = Config.sourceCompat
         targetCompatibility = Config.targetCompat
@@ -49,9 +62,9 @@ android {
 
 dependencies {
 
-//    implementation(Deps.dynodictAndroid)
+    "mavenImplementation"(Deps.dynodictAndroid)
+    "projectImplementation"(project(":dynodict-android"))
     implementation(Deps.serializationJson)
-    implementation(project(":dynodict-android"))
 
     implementation(Deps.UI.material)
 

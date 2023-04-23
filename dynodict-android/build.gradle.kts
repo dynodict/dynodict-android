@@ -27,6 +27,19 @@ android {
     kotlinOptions {
         jvmTarget = Config.kotlinJvmTarget
     }
+
+    flavorDimensionList += "type"
+
+    productFlavors {
+        create("project") {
+            dimension = "type"
+            matchingFallbacks += "project"
+        }
+        create("maven") {
+            dimension = "type"
+            matchingFallbacks += "maven"
+        }
+    }
 }
 
 publishing {
@@ -50,8 +63,9 @@ publishing {
     }
 }
 dependencies {
-//    api(Deps.dynodictCore)
-    api(project(":dynodict-core"))
+
+    "mavenApi"(Deps.dynodictCore)
+    "projectApi"(project(":dynodict-core"))
     implementation(Deps.serializationJson)
 }
 

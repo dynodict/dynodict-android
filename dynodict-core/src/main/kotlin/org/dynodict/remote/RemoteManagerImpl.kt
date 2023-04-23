@@ -16,6 +16,7 @@ class RemoteManagerImpl(
     private val converter: StringFormat
 ) : RemoteManager {
     private val client = OkHttpClient()
+    // TODO handle situation when settings.endpoint already contains "metadata.json"
     private val metadataUrl = settings.endpoint + "metadata.json"
 
     override suspend fun getMetadata(): RemoteBucketsMetadata? {

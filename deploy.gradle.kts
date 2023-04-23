@@ -5,7 +5,7 @@ tasks.create("deployCore") {
     }
 }
 tasks.create("deployAndroid") {
-    dependsOn(":dynodict-android:assemble", ":dynodict-android:publishToMavenLocal")
+    dependsOn(":dynodict-android:assembleMaven", ":dynodict-android:publishToMavenLocal")
     doLast {
         println("dynodict-android -> Deployed")
     }
