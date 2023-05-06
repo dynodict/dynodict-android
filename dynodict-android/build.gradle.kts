@@ -48,7 +48,7 @@ publishing {
             groupId = "org.dynodict"
             artifactId = "library-android"
             version = Versions.dynodictLibrary
-            artifact("${project.buildDir}/outputs/aar/dynodict-android-release.aar")
+            artifact("${project.buildDir}/outputs/aar/dynodict-android-maven-release.aar")
             pom.withXml {
                 val dependenciesNode = asNode().appendNode("dependencies")
                 configurations.implementation.get().allDependencies.forEach { dependency ->

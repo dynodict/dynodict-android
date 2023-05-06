@@ -1,5 +1,12 @@
 # DynoDict
 
+
+### First run 
+
+In order to run the sample - choose projectDebug for both :app and :dynodict-android modules.
+![img.png](configuration.png)
+
+
 ### Description
 
 This is the SDK to generate and update the list of Strings used in your project.
