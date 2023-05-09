@@ -1,11 +1,23 @@
 # DynoDict
 
 
-### First run 
+### First run
 
 In order to run the sample - choose projectDebug for both :app and :dynodict-android modules.
 ![img.png](configuration.png)
 
+### Run using dependency from local maven
+1. Deploy to MavenLocal:
+    1. Open app/build.gradle.kts
+    2. Comment out line:
+   ``` 
+   id("org.dynodict.plugin") version Versions.dynodictPlugin
+   ```
+    3. Run
+   ```
+   ./deploy.sh
+   ```
+    4. Sync and run using mavenDebug
 
 ### Description
 

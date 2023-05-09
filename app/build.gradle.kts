@@ -62,6 +62,7 @@ android {
 dependencies {
 
     "mavenImplementation"(Deps.dynodictAndroid)
+    "mavenImplementation"(Deps.dynodictCore)
     "projectImplementation"(project(":dynodict-android"))
     implementation(Deps.serializationJson)
 
