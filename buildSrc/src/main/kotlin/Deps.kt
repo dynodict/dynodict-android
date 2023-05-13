@@ -22,6 +22,9 @@ object Versions {
     const val junit = "4.13.2"
     const val mockitoCore = "4.8.0"
     const val mockitoKotlin = "4.1.0"
+
+    // initializer
+    const val initializer: String = "1.1.1"
 }
 
 object Config {
@@ -50,6 +53,7 @@ object Deps {
     val okhttp by lazy { "com.squareup.okhttp3:okhttp:${Versions.okhttp}" }
     val serializationCore by lazy { "org.jetbrains.kotlinx:kotlinx-serialization-core:$serialization" }
     val serializationJson by lazy { "org.jetbrains.kotlinx:kotlinx-serialization-json:$serialization" }
+    val initializer by lazy { "androidx.startup:startup-runtime:${Versions.initializer}" }
     val coroutines by lazy { "org.jetbrains.kotlinx:kotlinx-coroutines-core:${Versions.coroutines}" }
     val coroutinesAndroid by lazy { "org.jetbrains.kotlinx:kotlinx-coroutines-android:${Versions.coroutines}" }
 

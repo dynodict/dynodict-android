@@ -67,6 +67,7 @@ dependencies {
     "mavenApi"(Deps.dynodictCore)
     "projectApi"(project(":dynodict-core"))
     implementation(Deps.serializationJson)
+    implementation(Deps.initializer)
 }
 
 tasks.create("publishToLocal") {

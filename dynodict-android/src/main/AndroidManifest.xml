@@ -4,8 +4,12 @@
     <application>
 
         <provider
-            android:name="org.dynodict.android.DynoDictContentProvider"
-            android:authorities="${applicationId}.dynodictinitprovider"
-            android:exported="false" />
+            android:name="androidx.startup.InitializationProvider"
+            android:authorities="${applicationId}.androidx-startup"
+            android:exported="false">
+
+            <meta-data  android:name="org.dynodict.android.DynoDictInitializer"
+                android:value="androidx.startup" />
+        </provider>
     </application>
 </manifest>

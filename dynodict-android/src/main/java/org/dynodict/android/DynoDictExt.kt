@@ -15,6 +15,7 @@ fun DynoDict.Companion.initWith(
 
     val converter = Json {
         // Ignore unknown keys
+        ignoreUnknownKeys = settings.ignoreUnknownKeys
     }
     return initWith(context, endpoint, settings, converter)
 }

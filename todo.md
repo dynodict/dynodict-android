@@ -23,7 +23,7 @@
 - [x] Parameters verification
 - [x] Create remote models for DString, Bucket, etc.
 - [ ] Create StringProviderCallback to catch all Exception happened during getting the string
-- [ ] Migrate to Initializer instead of ContentProvider
+- [x] Migrate to Initializer instead of ContentProvider
 - [ ] Add tests
   * DynoDictManagerImpl
   * ParametersEvaluator
@@ -35,9 +35,9 @@
   * BucketMapper +
 - [x] ~~Add enum FormatterNotFoundStrategy to take care the scenario when format can't be found~~ No need since it can be handled via DynodictCallback
 - [ ] Deploy to real maven repository
-- [ ] Create **sh** file to deploy all sequentially
+- [x] Create **sh** file to deploy all sequentially
 - [ ] Split by retrofit and core implementation
-- [ ] Create multiple build types/flavor to rely on either direct folder or deployed lib
+- [x] Create multiple build types/flavor to rely on either direct folder or deployed lib
 
 ### Parameters edge cases
 

@@ -3,14 +3,16 @@ package org.dynodict.model.settings
 data class Settings(
     val stringNotFoundPolicy: StringNotFoundPolicy,
     val redundantPlaceholderPolicy: RedundantPlaceholderPolicy,
-    val notFoundPlaceholderPolicy: NotFoundPlaceholderPolicy
+    val notFoundPlaceholderPolicy: NotFoundPlaceholderPolicy,
+    val ignoreUnknownKeys: Boolean
 ) {
     companion object {
 
         val Strict = Settings(
             stringNotFoundPolicy = StringNotFoundPolicy.ThrowException,
             redundantPlaceholderPolicy = RedundantPlaceholderPolicy.ThrowException,
-            notFoundPlaceholderPolicy = NotFoundPlaceholderPolicy.ThrowException
+            notFoundPlaceholderPolicy = NotFoundPlaceholderPolicy.ThrowException,
+            ignoreUnknownKeys = false,
         )
 
         val Default = Strict
@@ -18,7 +20,8 @@ data class Settings(
         val Production = Settings(
             stringNotFoundPolicy = StringNotFoundPolicy.ReturnDefault,
             redundantPlaceholderPolicy = RedundantPlaceholderPolicy.Remove,
-            notFoundPlaceholderPolicy = NotFoundPlaceholderPolicy.Nothing
+            notFoundPlaceholderPolicy = NotFoundPlaceholderPolicy.Nothing,
+            ignoreUnknownKeys = true,
         )
     }
 }
