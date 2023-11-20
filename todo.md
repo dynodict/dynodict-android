@@ -22,7 +22,7 @@
 - [x] Clean up
 - [x] Parameters verification
 - [x] Create remote models for DString, Bucket, etc.
-- [ ] Create StringProviderCallback to catch all Exception happened during getting the string
+- [x] Create StringProviderCallback to catch all Exception happened during getting the string - Done via DynodictCallback
 - [x] Migrate to Initializer instead of ContentProvider
 - [ ] Add tests
   * DynoDictManagerImpl
@@ -38,6 +38,9 @@
 - [x] Create **sh** file to deploy all sequentially
 - [ ] Split by retrofit and core implementation
 - [x] Create multiple build types/flavor to rely on either direct folder or deployed lib
+- [x] Create a task to migrate from XML to JSON
+- [ ] Unify
+- [ ] Create a task to migrate project to use Dynodict
 
 ### Parameters edge cases
 

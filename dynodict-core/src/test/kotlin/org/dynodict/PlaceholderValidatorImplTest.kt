@@ -64,4 +64,20 @@ class PlaceholderValidatorImplTest {
         }
     }
 
+    @Test
+    fun `WHEN policy is Remove and input contains placeholder at the end THEN output shouldn't have placeholders `() {
+        val input = "String with and some text {placeholder}"
+        with(PlaceholderValidatorImpl(policy = RedundantPlaceholderPolicy.Remove)) {
+            assertEquals("String with and some text", validate(StringKey("Key"), input))
+        }
+    }
+
+    @Test
+    fun `WHEN policy is Remove and input contains placeholder at the start THEN output shouldn't have placeholders `() {
+        val input = "{placeholder} String with and some text"
+        with(PlaceholderValidatorImpl(policy = RedundantPlaceholderPolicy.Remove)) {
+            assertEquals("String with and some text", validate(StringKey("Key"), input))
+        }
+    }
+
 }

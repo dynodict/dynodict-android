@@ -1,5 +1,6 @@
 package org.dynodict.manager
 
+import org.dynodict.model.bucket.DString
 import org.dynodict.model.metadata.BucketMetadata
 import org.dynodict.model.metadata.BucketsMetadata
 
@@ -31,4 +32,9 @@ interface DynoDictManager {
      * Retrieve metadata available in local storage
      */
     suspend fun getMetadata(): BucketsMetadata?
+
+    /**
+     * Return all strings for given language
+     */
+    suspend fun getAllForLanguage(language: String): List<DString>
 }

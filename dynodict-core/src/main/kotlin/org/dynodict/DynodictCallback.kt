@@ -10,23 +10,20 @@ import kotlin.contracts.contract
 interface DynodictCallback {
     /**
      * Is invoked when an error happens.
-     * @return true exception is handled and should be propagated
+     * @return [Handled] if the error was handled, [NotHandled] otherwise
      */
     fun onErrorOccurred(ex: Exception): ExceptionResolution
 }
-
-//fun <T> DynodictCallback.errorOccurred(ex: Exception, valueIfHandled: T): T {
-//    when (onErrorOccurred(ex)) {
-//        Handled -> return valueIfHandled
-//        NotHandled -> throw ex
-//    }
-//}
 
 inline fun DynodictCallback.errorOccurred(ex: Exception, onHandled: () -> Unit = {}) {
     when (onErrorOccurred(ex)) {
         Handled -> onHandled.invoke()
         NotHandled -> throw ex
     }
+}
+
+object EmptyDynodictCallback : DynodictCallback {
+    override fun onErrorOccurred(ex: Exception): ExceptionResolution = NotHandled
 }
 
 enum class ExceptionResolution {

@@ -1,4 +1,4 @@
-package org.dynodict.plugin
+package org.dynodict.plugin.download
 
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
@@ -6,10 +6,8 @@ import kotlinx.serialization.json.encodeToStream
 import org.dynodict.mapper.toDomainMetadata
 import org.dynodict.model.metadata.BucketsMetadata
 import org.dynodict.plugin.evaluator.ParametersEvaluator
-import org.dynodict.plugin.generation.ExtensionFunctionGenerator
-import org.dynodict.plugin.generation.ObjectsGenerator
-import org.dynodict.plugin.generation.StringModel
-import org.dynodict.plugin.generation.TreeInflater
+import org.dynodict.plugin.ext.generateBucketName
+import org.dynodict.plugin.generation.*
 import org.dynodict.remote.RemoteManagerImpl
 import org.dynodict.remote.RemoteSettings
 import org.dynodict.remote.model.bucket.RemoteBucket
@@ -23,7 +21,7 @@ import java.io.File
 open class DownloadStringsTask : DefaultTask() {
 
     @set:Option(
-        option = "sources",
+        option = "output",
         description = "Directory to generate source files",
     )
     @get:Input
@@ -88,7 +86,7 @@ open class DownloadStringsTask : DefaultTask() {
     }
 
     private fun writeMetadataToAssets(
-        metadata: BucketsMetadata, json: Json, assetsDirectory: File
+        metadata: BucketsMetadata, json: Json, assetsDirectory: File,
     ) {
         assetsDirectory.mkdirs()
         val file = File(assetsDirectory, "$PREFIX_DEFAULT_FILE$METADATA_NAME")
@@ -104,7 +102,7 @@ open class DownloadStringsTask : DefaultTask() {
         bucket: RemoteBucket,
         customFormats: MutableSet<String>,
         sourceDir: File,
-        packageName: String
+        packageName: String,
     ) {
         val roots = treeInflater.generateTree(bucket)
         generateSources(roots, sourceDir, customFormats, packageName)
@@ -125,11 +123,6 @@ open class DownloadStringsTask : DefaultTask() {
         assetsFile.createNewFile()
 
         json.encodeToStream(clearedBucket, assetsFile.outputStream())
-    }
-
-    private fun generateBucketName(name: String, language: String, schemeVersion: Int): String {
-        // login_1_ua.json
-        return name + "_$schemeVersion" + "_$language.json"
     }
 
     private fun RemoteBucket.generateFilename(): String {
@@ -163,6 +156,7 @@ open class DownloadStringsTask : DefaultTask() {
     }
 
     companion object {
+
         const val PREFIX_DEFAULT_FILE = "default_"
         const val METADATA_NAME = "metadata.json"
         const val DYNODICT_EXT_NAME = "DynoDictExt.kt"

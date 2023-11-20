@@ -10,7 +10,7 @@ gradlePlugin {
         register("downloadStringsPlugin") {
             group = "org.dynodict"
             id = "org.dynodict.plugin"
-            implementationClass = "org.dynodict.plugin.DownloadStringsPlugin"
+            implementationClass = "org.dynodict.plugin.DynodictPlugin"
         }
     }
 }
@@ -38,6 +38,7 @@ dependencies {
     implementation(Deps.okhttp)
 
     implementation(Deps.serializationJson)
+    implementation(Deps.serializationYaml)
     implementation(Deps.coroutines)
 
     testImplementation(TestDeps.junit)

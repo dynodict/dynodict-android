@@ -7,6 +7,7 @@ import org.dynodict.errorOccurred
 import org.dynodict.mapper.toDomainBucket
 import org.dynodict.mapper.toDomainMetadata
 import org.dynodict.mapper.toRemoteMetadata
+import org.dynodict.model.bucket.DString
 import org.dynodict.model.metadata.BucketMetadata
 import org.dynodict.model.metadata.BucketsMetadata
 import org.dynodict.remote.RemoteManager
@@ -17,8 +18,7 @@ import org.dynodict.storage.StorageManager
  */
 class DynoDictManagerImpl(
     private val remoteManager: RemoteManager,
-    // TODO make private after testing
-    val storageManager: StorageManager,
+    private val storageManager: StorageManager,
     private val dynodictCallback: DynodictCallback
 ) : DynoDictManager {
 
@@ -45,7 +45,7 @@ class DynoDictManagerImpl(
         validateRemoteSettings()
         val result = remoteManager.getStrings(bucketsMetadata.toRemoteMetadata())
 
-        storageManager.storeBuckets(result.map{it.toDomainBucket()})
+        storageManager.storeBuckets(result.map { it.toDomainBucket() })
     }
 
     override suspend fun removeBuckets(buckets: List<BucketMetadata>) {
@@ -55,6 +55,11 @@ class DynoDictManagerImpl(
     override suspend fun getMetadata(): BucketsMetadata? {
         return storageManager.getMetadata()
     }
+
+    override suspend fun getAllForLanguage(language: String): List<DString> {
+        return storageManager.getAllForLanguage(language)
+    }
+
 
     private fun validateRemoteSettings() {
         if (remoteManager.settings.endpoint.isEmpty()) {

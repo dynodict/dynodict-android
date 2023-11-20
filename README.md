@@ -46,7 +46,7 @@ Use plugin to generate Kotlin placeholders for strings. For example:
 }
 ```
 
-is converted into:
+is converted to:
 
 ```
 object LoginScreen : StringKey("LoginScreen") {
@@ -75,9 +75,13 @@ and can be used further in code:
        id 'org.dynodict.plugin'
     }
    ```
-2. run gradlew script
+2. run gradle script
    ```
    ./gradlew clean :app:downloadStrings --package=org.dynodict --url=metadata_url 
+   ```
+3. run gradle script
+   ```
+   ./gradlew clean migrateStrings --input=app/src/main/res/values/strings.xml
    ```
 
 This task will download metadata from *metadata_url* and will generate Kotlin file Strings.kt
@@ -97,7 +101,7 @@ _--package_ - package which should be used to place Kotlin files. It is also
 used to set package at the top of the file. Default is evaluated based on the first non-single
 folder
 
-_--source_ - location where generated Kotlin file should be placed to. Default src/main/java
+_--output_ - location where generated Kotlin file should be placed to. Default src/main/java
 
 _--assets_ - location of the assets folder where default .json files are placed to
 

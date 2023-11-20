@@ -4,12 +4,11 @@ import org.gradle.api.JavaVersion
 
 object Versions {
     // dynodict
-    const val dynodictPlugin = "0.5.2"
+    const val dynodictPlugin = "0.5.5"
     const val dynodictLibrary = "0.5.3"
 
     // network
     const val okhttp = "4.10.0"
-    const val serialization = "1.4.1"
     const val coroutines = "1.6.4"
 
     // Compose
@@ -25,6 +24,12 @@ object Versions {
 
     // initializer
     const val initializer: String = "1.1.1"
+
+    // Serialization
+    const val serialization = "1.4.1"
+
+    // Yaml
+    const val yaml = "0.13.0"
 }
 
 object Config {
@@ -53,6 +58,7 @@ object Deps {
     val okhttp by lazy { "com.squareup.okhttp3:okhttp:${Versions.okhttp}" }
     val serializationCore by lazy { "org.jetbrains.kotlinx:kotlinx-serialization-core:$serialization" }
     val serializationJson by lazy { "org.jetbrains.kotlinx:kotlinx-serialization-json:$serialization" }
+    val serializationYaml by lazy{"net.mamoe.yamlkt:yamlkt:${Versions.yaml}"}
     val initializer by lazy { "androidx.startup:startup-runtime:${Versions.initializer}" }
     val coroutines by lazy { "org.jetbrains.kotlinx:kotlinx-coroutines-core:${Versions.coroutines}" }
     val coroutinesAndroid by lazy { "org.jetbrains.kotlinx:kotlinx-coroutines-android:${Versions.coroutines}" }

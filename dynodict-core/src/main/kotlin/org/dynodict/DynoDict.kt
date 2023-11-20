@@ -27,41 +27,8 @@ import java.io.File
 
 class DynoDict(
     private val provider: StringProvider,
-    // TODO make private after testing
-    val manager: DynoDictManager
-) : StringProvider, DynoDictManager {
-
-    override suspend fun setLocale(locale: DLocale) {
-        provider.setLocale(locale)
-    }
-
-    override fun get(key: StringKey, vararg parameters: Parameter): String {
-        return provider.get(key, *parameters)
-    }
-
-    override fun registerFormatter(key: String, value: DynoDictFormatter<*>?) {
-        provider.registerFormatter(key, value)
-    }
-
-    override suspend fun updateStrings() {
-        manager.updateStrings()
-    }
-
-    override suspend fun updateMetadata(): BucketsMetadata? {
-        return manager.updateMetadata()
-    }
-
-    override suspend fun updateBuckets(bucketsMetadata: BucketsMetadata) {
-        manager.updateBuckets(bucketsMetadata)
-    }
-
-    override suspend fun removeBuckets(buckets: List<BucketMetadata>) {
-        manager.removeBuckets(buckets)
-    }
-
-    override suspend fun getMetadata(): BucketsMetadata? {
-        return manager.getMetadata()
-    }
+    private val manager: DynoDictManager
+) : StringProvider by provider, DynoDictManager by manager {
 
     companion object {
         lateinit var instance: DynoDict
@@ -72,7 +39,8 @@ class DynoDict(
             converter: StringFormat,
             filesDir: File,
             defaultDataProvider: DefaultDataProvider,
-            settings: Settings = Settings.Default
+            callback: DynodictCallback,
+            settings: Settings,
         ): DynoDict {
 
             val remoteManager = RemoteManagerImpl(RemoteSettings(endpoint.orEmpty()), converter)
@@ -80,12 +48,6 @@ class DynoDict(
             val metadataStorage = FileMetadataStorage(filesDir, converter)
 
             val storageManager = StorageManagerImpl(bucketsStorage, metadataStorage)
-            val callback = object : DynodictCallback {
-                override fun onErrorOccurred(ex: Exception): ExceptionResolution {
-                    return ExceptionResolution.NotHandled
-                }
-
-            }
             val manager = DynoDictManagerImpl(remoteManager, storageManager, callback)
 
             val provider =

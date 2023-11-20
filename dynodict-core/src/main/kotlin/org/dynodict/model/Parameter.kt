@@ -1,7 +1,9 @@
 package org.dynodict.model
 
 sealed class Parameter(val value: Any, val key: String, val format: String?) {
-    class IntParameter(value: Int, key: String, format: String? = null) : Parameter(value, key, format)
+    class IntParameter(value: Int, key: String, format: String? = null) :
+        Parameter(value, key, format)
+
     class LongParameter(value: Long, key: String, format: String? = null) :
         Parameter(value, key, format)
 
