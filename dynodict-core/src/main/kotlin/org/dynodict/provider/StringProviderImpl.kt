@@ -50,15 +50,18 @@ class StringProviderImpl(
 
     private suspend fun setStringInternal(locale: DLocale) {
         atomicLocale.set(locale)
-        val metadata = metadataStorage.get() ?: return
-        val hasLocale = metadata.languages.contains(locale.value)
-        if (!hasLocale) {
-            throw LocaleNotFoundException("Locale $locale can not be found")
-        }
-        val bucketsMetadata = metadata.buckets
 
-        buckets.clear()
-        buckets.putAll(readBucketsFromStorage(bucketsMetadata, locale, bucketsStorage))
+        val metadata = metadataStorage.get()
+        if (metadata != null) {
+            val hasLocale = metadata.languages.contains(locale.value)
+            if (!hasLocale) {
+                throw LocaleNotFoundException("Locale $locale can not be found")
+            }
+            val bucketsMetadata = metadata.buckets
+
+            buckets.clear()
+            buckets.putAll(readBucketsFromStorage(bucketsMetadata, locale, bucketsStorage))
+        }
 
         if (defaultBuckets.isEmpty()) {
             val defaultMetadata = defaultMetadataStorage.get()

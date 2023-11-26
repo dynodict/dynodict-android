@@ -39,8 +39,8 @@
 - [ ] Split by retrofit and core implementation
 - [x] Create multiple build types/flavor to rely on either direct folder or deployed lib
 - [x] Create a task to migrate from XML to JSON
-- [ ] Unify
 - [ ] Create a task to migrate project to use Dynodict
+- [ ] if parameter has no parameters - use property instead of function
 
 ### Parameters edge cases
 

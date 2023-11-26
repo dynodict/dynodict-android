@@ -9,8 +9,9 @@ import java.io.File
 open class FileMetadataStorage(
     folder: File,
     private val json: StringFormat,
-    protected val metadataFile: File = File(folder, NAME)
+    protected val metadataFile: File = File(folder, NAME),
 ) : MetadataStorage {
+
     override suspend fun save(metadata: BucketsMetadata?) {
         createFileIfNeeded(metadataFile).also {
             it.writeText(json.encodeToString(metadata))
@@ -18,12 +19,14 @@ open class FileMetadataStorage(
     }
 
     override suspend fun get(): BucketsMetadata? {
-        createFileIfNeeded(metadataFile).also {
-            return json.decodeFromString<BucketsMetadata>(it.readText())
+        if (!metadataFile.exists()) {
+            return null
         }
+        return json.decodeFromString<BucketsMetadata>(metadataFile.readText())
     }
 
     companion object {
+
         const val NAME = "metadata.json"
     }
 }
