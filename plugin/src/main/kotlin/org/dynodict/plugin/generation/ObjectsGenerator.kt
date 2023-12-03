@@ -70,22 +70,28 @@ class ObjectsGenerator(private val packageName: String) {
         val parentClass = if (parent == null) "" else ", $parent"
         appendLineWithTab("object $key : StringKey(\"$key\"$parentClass) {", level)
         // ------------------------------------------------------------------------------
-        appendWithTab("fun get(", level + 1)
-        model.params.forEachIndexed { index, parameter ->
-            val suffix =
-                if (index < model.params.lastIndex) ", " else ""
-            append(parameter.generateCode() + suffix)
-            if (!parameter.format.isNullOrBlank()) {
-                customFormats.add(parameter.format!!)
-            }
+        if (model.params.isEmpty()) {
+            appendLineWithTab("val value: String", level + 1)
+            appendLineWithTab("get() = DynoDict.instance.get(this)", level + 2)
         }
-        appendLine("): String {")
-        val paramsString = model.params.prepareListOfParameters()
-        appendLineWithTab(
-            "return DynoDict.instance.get(this$paramsString)",
-            level + 2
-        )
-        appendLineWithTab("}", tabs = level + 1)
+        else {
+            appendWithTab("fun value(", level + 1)
+            model.params.forEachIndexed { index, parameter ->
+                val suffix =
+                    if (index < model.params.lastIndex) ", " else ""
+                append(parameter.generateCode() + suffix)
+                if (!parameter.format.isNullOrBlank()) {
+                    customFormats.add(parameter.format!!)
+                }
+            }
+            appendLine("): String {")
+            val paramsString = model.params.prepareListOfParameters()
+            appendLineWithTab(
+                "return DynoDict.instance.get(this$paramsString)",
+                level + 2
+            )
+            appendLineWithTab("}", tabs = level + 1)
+        }
         // ------------------------------------------------------------------------------
         appendLineWithTab("}", level)
     }

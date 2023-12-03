@@ -1,5 +1,7 @@
 package org.dynodict.plugin.generation
 
+import kotlinx.serialization.Serializable
 import org.dynodict.remote.model.bucket.RemoteDString
 
-class StringModel(val children: MutableMap<String, StringModel> = mutableMapOf(), val value: RemoteDString? = null)
+@Serializable
+data class StringModel(val children: MutableMap<String, StringModel> = mutableMapOf(), val value: RemoteDString? = null)
