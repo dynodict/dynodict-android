@@ -3,7 +3,7 @@ package org.dynodict.plugin.generation
 import org.dynodict.plugin.exception.IllegalTypeException
 import org.dynodict.remote.model.bucket.RemoteDString
 import org.dynodict.remote.model.bucket.RemoteParameter
-import java.util.*
+import java.util.Locale
 
 class ObjectsGenerator(private val packageName: String) {
 
@@ -35,46 +35,36 @@ class ObjectsGenerator(private val packageName: String) {
         model: StringModel,
         parent: String?,
         level: Int,
-        customFormats: MutableSet<String>
+        customFormats: MutableSet<String>,
     ) {
 
-        if (model.children.isNotEmpty()) {
-            generateContainer(parent, key, model, level, customFormats)
-        }
         val value = model.value
+
+        val parentClass = if (parent == null) "" else ", $parent"
+        val signature = "object $key : StringKey(\"$key\"$parentClass) {"
+
+        appendLineWithTab(signature, level)
+
         if (value != null) {
-            generateLeaf(parent, key, value, level, customFormats)
+            insertValueWithParam(value, level, customFormats)
         }
-    }
 
-    private fun StringBuilder.generateContainer(
-        parent: String?,
-        key: String,
-        model: StringModel,
-        level: Int,
-        customFormat: MutableSet<String>
-    ) {
-        val parentClass = if (parent == null) "" else ", $parent"
-        appendLineWithTab("object $key : StringKey(\"$key\"$parentClass) {", level)
-        model.children.forEach { generateModel(it.key, it.value, key, level + 1, customFormat) }
+        model.children.let {
+            if (it.isNotEmpty()) {
+                if (value != null) appendLine()
+                it.forEach { child -> generateModel(child.key, child.value, key, level + 1, customFormats) }
+            }
+        }
+
         appendLineWithTab("}", level)
+
     }
 
-    private fun StringBuilder.generateLeaf(
-        parent: String?,
-        key: String,
-        model: RemoteDString,
-        level: Int,
-        customFormats: MutableSet<String>
-    ) {
-        val parentClass = if (parent == null) "" else ", $parent"
-        appendLineWithTab("object $key : StringKey(\"$key\"$parentClass) {", level)
-        // ------------------------------------------------------------------------------
+    private fun StringBuilder.insertValueWithParam(model: RemoteDString, level: Int, customFormats: MutableSet<String>) {
         if (model.params.isEmpty()) {
             appendLineWithTab("val value: String", level + 1)
             appendLineWithTab("get() = DynoDict.instance.get(this)", level + 2)
-        }
-        else {
+        } else {
             appendWithTab("fun value(", level + 1)
             model.params.forEachIndexed { index, parameter ->
                 val suffix =
@@ -92,8 +82,6 @@ class ObjectsGenerator(private val packageName: String) {
             )
             appendLineWithTab("}", tabs = level + 1)
         }
-        // ------------------------------------------------------------------------------
-        appendLineWithTab("}", level)
     }
 
     private fun List<RemoteParameter>.prepareListOfParameters(): String {
