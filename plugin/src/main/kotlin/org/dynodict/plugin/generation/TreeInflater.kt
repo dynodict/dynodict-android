@@ -8,9 +8,7 @@ class TreeInflater {
     fun generateTree(bucket: RemoteBucket): MutableMap<String, StringModel> {
         val roots = mutableMapOf<String, StringModel>()
 
-        bucket.translations
-            .sortedBy { it.key.count { char -> char == '.' } }
-            .map { dString ->
+        bucket.translations.map { dString ->
             val splitted = dString.key.split(".")
 
             var parent: StringModel? = null

@@ -63,7 +63,8 @@ open class MigrateStringsTask : DefaultTask() {
     fun convert() {
 
         try {
-            val strings = ResourcesParser().parse(inputDirParam)
+            val file = File(inputDirParam)
+            val strings = ResourcesParser().parse(file.readText())
             // serialize
             val json = Json { prettyPrint = true }
 

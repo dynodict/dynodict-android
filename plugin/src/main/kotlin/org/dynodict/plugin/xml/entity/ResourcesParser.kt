@@ -5,63 +5,61 @@ import groovy.util.NodeList
 import groovy.xml.XmlParser
 import org.dynodict.remote.model.bucket.RemoteDString
 import org.dynodict.remote.model.bucket.RemoteParameter
-import java.io.File
 import java.util.Locale
 import java.util.regex.Matcher
 import java.util.regex.Pattern
 
 class ResourcesParser {
 
-    fun parse(path: String): List<RemoteDString> {
-        val file = File(path)
+    fun parse(data: String): List<RemoteDString> {
         val result = mutableListOf<RemoteDString>()
-        println("file before parsing started")
-        val resources = XmlParser().parse(file)
+        val resources = XmlParser().parseText(data)
         resources.children().map { it as Node }.forEach {
-            println("Value: ${it.attribute("name")} -> ${it.value()}")
             val translatable = it.attribute("translatable")
             val key = prepareKey(it.attribute("name").toString())
             val (value, params) = parseValue((it.value() as NodeList)[0].toString())
             if (translatable == "false") {
                 return@forEach
             } else {
-                val string = RemoteDString(
-                    key, value, params.takeIf { it.isNotEmpty() }.orEmpty()
-                )
+                val string = RemoteDString(key, value, params)
                 result.add(string)
-                println("String: $string")
             }
         }
         return result
     }
 
     private fun parseValue(value: String): Pair<String, List<RemoteParameter>> {
-        println("Value: $value")
-        var valueChanged = value
         val pattern: Pattern = Pattern.compile(REGEX)
         val matcher: Matcher = pattern.matcher(value)
         val parameters = mutableListOf<RemoteParameter>()
 
-        var parameterIndex = 0
         val formatSpecifiers: MutableList<String> = ArrayList()
 
+        val stringBuilder = StringBuilder()
+        String.format("sdf")
+        var index = 0
+        var start = 0
+        var end = 0
         while (matcher.find()) {
-            println("Found: ${matcher.group(0)}")
-//            matcher.replaceFirst("{${parameterIndex++}}")
-            parameters.add(RemoteParameter("string", "param$parameterIndex", matcher.group(0)))
-            formatSpecifiers.add(matcher.group(0))
+            start = matcher.start()
+            if (end == 0) {
+                stringBuilder.append(value.substring(0, start))
+            } else {
+                stringBuilder.append(value.substring(end, start))
+            }
+            end = matcher.end()
+            stringBuilder.append("{${index++}}")
+            formatSpecifiers.add(value.substring(start, end))
         }
-
-        for (specifier in formatSpecifiers) {
-            println("Format Specifier: $specifier")
-        }
+        stringBuilder.append(value.substring(end))
         // %s %d %f
         // %.8f
         // %15.8f
         // %1$s
         // %07d
         // value.format(1, 2)
-        return valueChanged to parameters
+        println("Format specifiers: $formatSpecifiers")
+        return stringBuilder.toString() to parameters
     }
 
     private fun prepareKey(name: String): String {
