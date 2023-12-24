@@ -35,46 +35,58 @@ class ResourcesParser {
 
         val formatSpecifiers: MutableList<FormatSpecifier> = ArrayList()
 
-        val stringBuilder = StringBuilder()
+        val stringBuilder = StringBuilder(value)
 
-        var index = 0
-        var start = 0
-        var end = 0
         while (matcher.find()) {
-            start = matcher.start()
-            if (end == 0) {
-                stringBuilder.append(value.substring(0, start))
-            } else {
-                stringBuilder.append(value.substring(end, start))
-            }
-            end = matcher.end()
-            stringBuilder.append("{${index++}}")
+            val start = matcher.start()
+            val end = matcher.end()
             val specifier = value.substring(start, end)
-            // parse parameter's position in specifier
-            val position = specifier
-                .substring(1)
-                .split("$")
-                .takeIf { it.size > 1 }
-                ?.get(0)?.toInt()
 
-            val formatSpecifier = parseParameter(position, specifier)
+            val formatSpecifier = parseParameter(specifier)
             formatSpecifiers.add(formatSpecifier)
         }
-        stringBuilder.append(value.substring(end))
-        // %s %d %f
-        // %.8f
-        // %15.8f
-        // %1$s
-        // %07d
-        // value.format(1, 2)
-        println("Format specifiers: $formatSpecifiers")
+        val reservedPositions = formatSpecifiers
+            .filter { it.position != null }
+            .map { it.position }
+
+        // convert specifier to parameter
+        // name if according to position
+        var index = 0
+        parameters.addAll(
+            formatSpecifiers.map{ formatSpecifier ->
+                val position = formatSpecifier.position
+                val name = if (position != null) {
+                    "param$position"
+                } else {
+                    while (reservedPositions.contains(index)) {
+                        index++
+                    }
+                    "param$index".also{
+                        index++
+                    }
+                }
+                RemoteParameter(
+                    key = name,
+                    type = formatSpecifier.type.jsonType,
+                    format = if (formatSpecifier.isCustom) formatSpecifier.migratedFormat else null,
+                ).also {
+                    val specifier = formatSpecifier.fullDescription
+                    val foundIndex = stringBuilder.indexOf(specifier)
+                    stringBuilder.replace(foundIndex, foundIndex + specifier.length, "{$name}")
+                }
+            }
+        )
         return stringBuilder.toString() to parameters
     }
 
-    private fun parseParameter(
-        position: Int?,
-        specifier: String,
-    ): FormatSpecifier {
+    private fun parseParameter(specifier: String): FormatSpecifier {
+
+        // parse parameter's position in specifier
+        val position = specifier
+            .substring(1)
+            .split("$")
+            .takeIf { it.size > 1 }
+            ?.get(0)?.toInt()
         val formatSpecifier = FormatSpecifier(
             position = position,
             fullDescription = specifier,
@@ -190,6 +202,13 @@ private data class FormatSpecifier(
     val migratedFormat: String, // it is the format without unneeded data. %3$s -> %s
 )
 
+private val defaultSpecifiers = listOf("%s", "%d", "%f", "%c", "%b", "%h", "%o", "%x", "%X", "%e", "%E", "%g", "%G", "%a", "%A", "%t", "%T", "%%")
+
+private val FormatSpecifier.isCustom: Boolean
+    get() {
+        return migratedFormat !in defaultSpecifiers
+    }
+
 sealed class FormatType {
     data class FloatType(val precision: Int, val width: Int) : FormatType()
     data class DoubleType(val precision: Int, val width: Int) : FormatType()
@@ -199,4 +218,15 @@ sealed class FormatType {
     data class ByteType(val width: Int) : FormatType()
     object Undefined : FormatType()
 }
+
+private val FormatType.jsonType: String
+    get() = when (this) {
+        is FormatType.FloatType -> "float"
+        is FormatType.DoubleType -> "float"
+        is FormatType.StringType -> "string"
+        is FormatType.Integer -> "integer"
+        is FormatType.CharType -> "string"
+        is FormatType.ByteType -> "integer"
+        is FormatType.Undefined -> "string" // string
+    }
 

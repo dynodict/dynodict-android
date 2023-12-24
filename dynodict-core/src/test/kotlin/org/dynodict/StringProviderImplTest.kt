@@ -4,10 +4,11 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import org.dynodict.formatter.DynoDictFormatter
-import org.dynodict.model.*
+import org.dynodict.model.DLocale
+import org.dynodict.model.Parameter
+import org.dynodict.model.StringKey
 import org.dynodict.model.bucket.Bucket
 import org.dynodict.model.bucket.DString
-import org.dynodict.model.Parameter
 import org.dynodict.model.metadata.BucketsMetadata
 import org.dynodict.model.settings.Settings
 import org.dynodict.model.settings.StringNotFoundPolicy
@@ -85,7 +86,8 @@ class StringProviderImplTest {
     @Test
     fun `WHEN custom formatter is registered and used THEN correct string should be shown`() {
         val formatter = object : DynoDictFormatter<Long> {
-            override fun format(value: Any): String {
+
+            override fun format(value: Any, format: String?): String {
                 val price = value as Float
                 return "$$price"
             }
@@ -161,7 +163,7 @@ class StringProviderImplTest {
         dynodictCallback: DynodictCallback = defaultCallback,
         presetLocale: Boolean = true,
 
-        action: StringProvider.() -> Unit
+        action: StringProvider.() -> Unit,
     ) {
         StringProviderImpl(
             storage,
@@ -183,6 +185,7 @@ class StringProviderImplTest {
     }
 
     companion object {
+
         val LOGIN_KEY = StringKey("LoginScreen.ButtonName")
 
         const val BUCKET_JSON = """
