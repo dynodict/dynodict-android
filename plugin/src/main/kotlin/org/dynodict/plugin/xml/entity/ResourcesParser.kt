@@ -45,6 +45,7 @@ class ResourcesParser {
             val formatSpecifier = parseParameter(specifier)
             formatSpecifiers.add(formatSpecifier)
         }
+        // this is the list of already used position when position is passed via argument: %3$s
         val reservedPositions = formatSpecifiers
             .filter { it.position != null }
             .map { it.position }
@@ -53,7 +54,7 @@ class ResourcesParser {
         // name if according to position
         var index = 0
         parameters.addAll(
-            formatSpecifiers.map{ formatSpecifier ->
+            formatSpecifiers.map { formatSpecifier ->
                 val position = formatSpecifier.position
                 val name = if (position != null) {
                     "param$position"
@@ -61,7 +62,7 @@ class ResourcesParser {
                     while (reservedPositions.contains(index)) {
                         index++
                     }
-                    "param$index".also{
+                    "param$index".also {
                         index++
                     }
                 }
@@ -87,100 +88,42 @@ class ResourcesParser {
             .split("$")
             .takeIf { it.size > 1 }
             ?.get(0)?.toInt()
-        val formatSpecifier = FormatSpecifier(
+        return FormatSpecifier(
             position = position,
             fullDescription = specifier,
             migratedFormat = specifier.replace(Regex("%[0-9]\\\$"), "%"),
-            type = when {
-                specifier.contains("f") -> {
+            type = getFormatType(specifier)
+        )
+    }
+
+    private fun getFormatType(specifier: String): FormatType {
+        fun width(char: Char): Int = specifier
+            .substringAfter("%")
+            .substringBefore(char)
+            .toIntOrNull() ?: 0
+
+        return when {
+            specifier.contains("f") -> {
+                if (specifier.contains(".")) {
                     val precision = specifier
                         .substringAfter(".")
                         .substringBefore("f")
                         .toIntOrNull() ?: 0
-                    val width = specifier
-                        .substringAfter("%")
-                        .substringBefore(".")
-                        .toIntOrNull() ?: 0
-                    FormatType.FloatType(precision, width)
+                    FormatType.FloatType(precision, width('.'))
+                } else {
+                    FormatType.FloatType(0, width('f'))
                 }
-
-                specifier.contains("d") -> {
-                    val width = specifier
-                        .substringAfter("%")
-                        .substringBefore("d")
-                        .toIntOrNull() ?: 0
-                    FormatType.Integer(width)
-                }
-
-                specifier.contains("s") -> {
-                    val width = specifier
-                        .substringAfter("%")
-                        .substringBefore("s")
-                        .toIntOrNull() ?: 0
-                    FormatType.StringType(width)
-                }
-
-                specifier.contains("c") -> {
-                    val width = specifier
-                        .substringAfter("%")
-                        .substringBefore("c")
-                        .toIntOrNull() ?: 0
-                    FormatType.CharType(width)
-                }
-
-                specifier.contains("b") -> {
-                    val width = specifier
-                        .substringAfter("%")
-                        .substringBefore("b")
-                        .toIntOrNull() ?: 0
-                    FormatType.ByteType(width)
-                }
-
-                specifier.contains("h") -> {
-                    val width = specifier
-                        .substringAfter("%")
-                        .substringBefore("h")
-                        .toIntOrNull() ?: 0
-                    FormatType.ByteType(width)
-                }
-
-                specifier.contains("o") -> {
-                    val width = specifier
-                        .substringAfter("%")
-                        .substringBefore("o")
-                        .toIntOrNull() ?: 0
-                    FormatType.ByteType(width)
-                }
-
-                specifier.contains("x") -> {
-                    val width = specifier
-                        .substringAfter("%")
-                        .substringBefore("x")
-                        .toIntOrNull() ?: 0
-                    FormatType.ByteType(width)
-                }
-
-                specifier.contains("X") -> {
-                    val width = specifier
-                        .substringAfter("%")
-                        .substringBefore("X")
-                        .toIntOrNull() ?: 0
-                    FormatType.ByteType(width)
-                }
-
-                specifier.contains("e") -> {
-                    val width = specifier
-                        .substringAfter("%")
-                        .substringBefore("e")
-                        .toIntOrNull() ?: 0
-                    FormatType.ByteType(width)
-                }
-
-                else -> FormatType.Undefined
             }
 
-        )
-        return formatSpecifier
+            specifier.contains("d") -> FormatType.Integer(width('d'))
+            specifier.contains("s") -> FormatType.StringType(width('s'))
+            specifier.contains("c") -> FormatType.CharType(width('c'))
+            specifier.contains("o") -> FormatType.Integer(width('o'))
+            specifier.contains("x") -> FormatType.Integer(width('x'))
+            specifier.contains("X") -> FormatType.Integer(width('X'))
+
+            else -> FormatType.Undefined
+        }
     }
 
     private fun prepareKey(name: String): String {
@@ -189,9 +132,7 @@ class ResourcesParser {
 
     companion object {
 
-        const val TAG = "ResourcesParser"
         const val REGEX = "%([0-9\$]*[-+#, 0(]*\\d*\\.?\\d*[bBhHsScCdoxXeEfgGaAtT%])"
-
     }
 }
 
@@ -202,7 +143,7 @@ private data class FormatSpecifier(
     val migratedFormat: String, // it is the format without unneeded data. %3$s -> %s
 )
 
-private val defaultSpecifiers = listOf("%s", "%d", "%f", "%c", "%b", "%h", "%o", "%x", "%X", "%e", "%E", "%g", "%G", "%a", "%A", "%t", "%T", "%%")
+private val defaultSpecifiers = listOf("%s", "%d", "%f", "%c")
 
 private val FormatSpecifier.isCustom: Boolean
     get() {
@@ -210,23 +151,21 @@ private val FormatSpecifier.isCustom: Boolean
     }
 
 sealed class FormatType {
+
     data class FloatType(val precision: Int, val width: Int) : FormatType()
-    data class DoubleType(val precision: Int, val width: Int) : FormatType()
     data class StringType(val width: Int) : FormatType()
     data class Integer(val width: Int) : FormatType()
     data class CharType(val width: Int) : FormatType()
-    data class ByteType(val width: Int) : FormatType()
     object Undefined : FormatType()
 }
 
+/** It is the type which is used in json */
 private val FormatType.jsonType: String
     get() = when (this) {
         is FormatType.FloatType -> "float"
-        is FormatType.DoubleType -> "float"
         is FormatType.StringType -> "string"
         is FormatType.Integer -> "integer"
         is FormatType.CharType -> "string"
-        is FormatType.ByteType -> "integer"
-        is FormatType.Undefined -> "string" // string
+        is FormatType.Undefined -> "string"
     }
 

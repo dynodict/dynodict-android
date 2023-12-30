@@ -7,7 +7,10 @@ import org.dynodict.mapper.toDomainMetadata
 import org.dynodict.model.metadata.BucketsMetadata
 import org.dynodict.plugin.evaluator.ParametersEvaluator
 import org.dynodict.plugin.ext.generateBucketName
-import org.dynodict.plugin.generation.*
+import org.dynodict.plugin.generation.ExtensionFunctionGenerator
+import org.dynodict.plugin.generation.ObjectsGenerator
+import org.dynodict.plugin.generation.StringModel
+import org.dynodict.plugin.generation.TreeInflater
 import org.dynodict.remote.RemoteManagerImpl
 import org.dynodict.remote.RemoteSettings
 import org.dynodict.remote.model.bucket.RemoteBucket
@@ -149,8 +152,13 @@ open class DownloadStringsTask : DefaultTask() {
             if (!extensionFile.exists()) {
                 extensionFile.createNewFile()
             }
+            val filtered = customFormats.toList().filterNot { it.contains('%') }
+
+            println("Parameters which will be have custom Formatter: $filtered")
+            println("Amount of skipped due to default formatters: ${customFormats.size - filtered.size}")
+            
             val extensionText =
-                ExtensionFunctionGenerator(packageName).generate(customFormats.toList())
+                ExtensionFunctionGenerator(packageName).generate(filtered)
             extensionFile.writeText(extensionText)
         }
     }

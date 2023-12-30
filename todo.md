@@ -41,6 +41,7 @@
 - [x] Create a task to migrate from XML to JSON
 - [ ] Create a task to migrate project to use Dynodict
 - [x] if parameter has no parameters - use property instead of function
+- [ ] Don't throw exception when the custom formatter is not set for plain formatters like %s, %4.f
 
 ### Parameters edge cases
 

@@ -35,7 +35,7 @@ class StringProviderImpl(
         DEFAULT_INT_FORMATTER to IntFormatter(),
         DEFAULT_LONG_FORMATTER to LongFormatter(),
         DEFAULT_FLOAT_FORMATTER to FloatFormatter(),
-        DEFAULT_STRING_FORMATTER to StringFormatter()
+        DEFAULT_STRING_FORMATTER to StringFormatter(),
     )
 
     override suspend fun setLocale(locale: DLocale) {

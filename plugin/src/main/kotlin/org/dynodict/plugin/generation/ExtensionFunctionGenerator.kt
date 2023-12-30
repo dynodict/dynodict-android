@@ -15,6 +15,7 @@ class ExtensionFunctionGenerator(
 
         // no need to generate anything since formatters
         if (formats.isEmpty()) return ""
+        
 
         val builder = StringBuilder()
 
