@@ -165,16 +165,18 @@ class StringProviderImpl(
     }
 
     private fun handleNotFoundString(key: StringKey): String {
-        when (settings.stringNotFoundPolicy) {
+        return when (settings.stringNotFoundPolicy) {
             StringNotFoundPolicy.ThrowException -> {
                 throw StringNotFoundException("String not found for key $key and locale: ${atomicLocale.get()}")
             }
+
             StringNotFoundPolicy.EmptyString -> {
-                return ""
+                ""
             }
+
             StringNotFoundPolicy.ReturnDefault -> {
                 // It should never be null for default storage
-                return defaultBuckets[key]?.value
+                defaultBuckets[key]?.value
                     ?: throw DefaultStringNotFoundException("Default String can not be found for key:$key")
             }
         }
