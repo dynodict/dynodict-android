@@ -64,6 +64,12 @@ class DynoDict(
             }
         }
 
+        fun initWith(stringProvider: StringProvider, dynodictManager: DynoDictManager): DynoDict {
+            return DynoDict(stringProvider, dynodictManager).also {
+                instance = it
+            }
+        }
+
         private fun createStringProvider(
             filesDir: File,
             defaultDataProvider: DefaultDataProvider,

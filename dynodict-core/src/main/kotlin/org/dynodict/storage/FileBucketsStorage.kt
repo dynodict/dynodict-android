@@ -9,10 +9,11 @@ import java.nio.charset.Charset
 
 open class FileBucketsStorage(
     protected val folder: File,
-    protected val json: StringFormat
+    protected val json: StringFormat,
 ) : BucketsStorage {
+
     override suspend fun save(bucket: Bucket) {
-        val bucketFile = File(folder, bucket.generateFilename())
+        val bucketFile = File(folder, bucket.filename)
         createFileIfNeeded(bucketFile)
         bucketFile.writeText(json.encodeToString(bucket), Charset.defaultCharset())
     }
@@ -23,8 +24,4 @@ open class FileBucketsStorage(
 
         return json.decodeFromString<Bucket>(bucketFile.readText())
     }
-}
-
-private fun Bucket.generateFilename(): String {
-    return generateBucketName(name, language, schemeVersion)
 }
