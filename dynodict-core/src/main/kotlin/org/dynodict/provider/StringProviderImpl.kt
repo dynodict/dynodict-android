@@ -135,7 +135,7 @@ class StringProviderImpl(
     ): Map<StringKey, DString> {
         val result = mutableMapOf<StringKey, DString>()
         bucketsMetadata.forEach {
-            val filename = generateBucketName(it.name, locale.value, it.editionVersion)
+            val filename = generateBucketName(it.name, locale.value, it.schemeVersion)
             val map = storage.get(filename)?.translations.orEmpty()
                 .associateBy { value -> StringKey(value.key) }
             result.putAll(map)

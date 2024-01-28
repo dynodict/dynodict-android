@@ -9,4 +9,8 @@ data class Bucket(
     val name: String,
     val language: String,
     val translations: List<DString> = emptyList(),
-)
+) {
+
+    val filename: String
+        get() = name + "_$schemeVersion" + "_$language.json"
+}

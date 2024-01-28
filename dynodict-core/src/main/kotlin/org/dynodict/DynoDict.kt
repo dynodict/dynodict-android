@@ -3,14 +3,8 @@
 package org.dynodict
 
 import kotlinx.serialization.StringFormat
-import org.dynodict.formatter.DynoDictFormatter
 import org.dynodict.manager.DynoDictManager
 import org.dynodict.manager.DynoDictManagerImpl
-import org.dynodict.model.DLocale
-import org.dynodict.model.Parameter
-import org.dynodict.model.StringKey
-import org.dynodict.model.metadata.BucketMetadata
-import org.dynodict.model.metadata.BucketsMetadata
 import org.dynodict.model.settings.Settings
 import org.dynodict.provider.StringProvider
 import org.dynodict.provider.StringProviderImpl
@@ -27,10 +21,11 @@ import java.io.File
 
 class DynoDict(
     private val provider: StringProvider,
-    private val manager: DynoDictManager
+    private val manager: DynoDictManager,
 ) : StringProvider by provider, DynoDictManager by manager {
 
     companion object {
+
         lateinit var instance: DynoDict
             private set
 
@@ -69,6 +64,12 @@ class DynoDict(
             }
         }
 
+        fun initWith(stringProvider: StringProvider, dynodictManager: DynoDictManager): DynoDict {
+            return DynoDict(stringProvider, dynodictManager).also {
+                instance = it
+            }
+        }
+
         private fun createStringProvider(
             filesDir: File,
             defaultDataProvider: DefaultDataProvider,
@@ -76,7 +77,7 @@ class DynoDict(
             bucketsStorage: FileBucketsStorage,
             metadataStorage: FileMetadataStorage,
             settings: Settings,
-            dynodictCallback: DynodictCallback
+            dynodictCallback: DynodictCallback,
         ): StringProviderImpl {
             val defaultBucketStorage =
                 DefaultBucketsFileStorage(filesDir, serializer, defaultDataProvider)
